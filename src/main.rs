@@ -28,7 +28,7 @@ fn main() {
     let header = Tzfile::header(&buffer);
     println!("Valid TZfile : {}", (header.magic == MAGIC));
     println!("{:?}", header);
-    header.parse();
+    header.parse(&buffer);
 }
 
 impl Tzfile {
@@ -45,7 +45,8 @@ impl Tzfile {
         }
     }
 
-    fn parse(self) {
+    fn parse(self, buffer: &[u8]) {
+        // Calculates fields lengths and indexes (Version 1 format)
         let tzh_timecnt_len = &self.tzh_timecnt*5;
         let tzh_typecnt_len = &self.tzh_typecnt*6;
         let tzh_leapcnt_len = &self.tzh_leapcnt*4;
