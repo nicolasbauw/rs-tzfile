@@ -5,6 +5,8 @@ use byteorder::{ByteOrder, BE};
 
 // TZif magic four bytes
 static MAGIC: u32 = 0x545A6966;
+// End of first (V1) header
+static V1_HEADER_END: i32 = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Tzfile {
@@ -26,6 +28,7 @@ fn main() {
     let header = Tzfile::header(&buffer);
     println!("Valid TZfile : {}", (header.magic == MAGIC));
     println!("{:?}", header);
+    header.parse();
 }
 
 impl Tzfile {
@@ -40,5 +43,20 @@ impl Tzfile {
             tzh_typecnt: BE::read_i32(&buffer[0x24..=0x27]),
             tzh_charcnt: BE::read_i32(&buffer[0x28..=0x2b]),
         }
+    }
+
+    fn parse(self) {
+        let tzh_timecnt_len = &self.tzh_timecnt*5;
+        let tzh_typecnt_len = &self.tzh_typecnt*6;
+        let tzh_leapcnt_len = &self.tzh_leapcnt*4;
+        let tzh_charcnt_len = &self.tzh_charcnt;
+        let tzh_timecnt_end = V1_HEADER_END + tzh_timecnt_len;
+        let tzh_typecnt_end = tzh_timecnt_end + tzh_typecnt_len;
+        let tzh_leapcnt_end = tzh_typecnt_end + tzh_leapcnt_len;
+        let tzh_charcnt_end = tzh_leapcnt_end + tzh_charcnt_len;
+        println!("tzh_timecnt_end : {:x?}", tzh_timecnt_end);
+        println!("tzh_typecnt_end : {:x?}", tzh_typecnt_end);
+        println!("tzh_leapcnt_end : {:x?}", tzh_leapcnt_end);
+        println!("tzh_charcnt_end : {:x?}", tzh_charcnt_end);
     }
 }
