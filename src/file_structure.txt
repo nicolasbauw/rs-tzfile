@@ -1,0 +1,11 @@
+tzh_timecnt *   | 4
+                | 8
+
+tzh_timecnt * 1
+
+tzh_typecnt * 6
+
+tzh_leapcnt *   | 4
+                | 6
+
+tzh_charcnt * 1
