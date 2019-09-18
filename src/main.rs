@@ -19,17 +19,17 @@ struct Tzfile {
 }
 
 fn main() {
-    let header = Tzfile::header();
+    let mut f = File::open("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/America/Phoenix").unwrap();
+    let mut buffer = Vec::new();
+    // read the whole file
+    f.read_to_end(&mut buffer).unwrap();
+    let header = Tzfile::header(&buffer);
     println!("Valid TZfile : {}", (header.magic == MAGIC));
     println!("{:?}", header);
 }
 
 impl Tzfile {
-    fn header() -> Tzfile {
-        let mut f = File::open("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/America/Phoenix").unwrap();
-        let mut buffer = Vec::new();
-        // read the whole file
-        f.read_to_end(&mut buffer).unwrap();
+    fn header(buffer: &[u8]) -> Tzfile {
         Tzfile {
             magic: BE::read_u32(&buffer[0x00..=0x03]),
             version: buffer[4],
