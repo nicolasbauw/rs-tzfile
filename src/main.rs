@@ -4,6 +4,7 @@ use std::env;
 use std::path::Path;
 use std::str::from_utf8;
 use byteorder::{ByteOrder, BE};
+use chrono::prelude::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
