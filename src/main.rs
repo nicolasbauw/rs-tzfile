@@ -63,8 +63,12 @@ impl Tzfile {
         println!("tzh_leapcnt_len (dec): {:?}       tzh_leapcnt_end (hex): {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
         println!("tzh_charcnt_len (dec): {:?}       tzh_charcnt_end (hex): {:x?}", tzh_charcnt_len, tzh_charcnt_end);
 
-        let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
-        println!("Timezone names : {}", names);
+        //let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
+        let names: Vec<&str> = buffer[tzh_leapcnt_end..tzh_charcnt_end]
+            .chunks_exact(4)
+            .map(|char| { from_utf8(char).unwrap() })
+            .collect();
+        println!("Timezone names : {:?}", names);
 
         let seconds=BE::read_i32(&buffer[0x36..0x40]);
         //let offset = FixedOffset::east_opt(seconds);
