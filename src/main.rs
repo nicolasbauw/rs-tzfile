@@ -27,7 +27,7 @@ fn main() {
     f.read_to_end(&mut buffer).unwrap();
     let header = Tzfile::header(&buffer);
     println!("Valid TZfile : {}", (header.magic == MAGIC));
-    println!("{:?}", header);
+    println!("{:x?}", header);
     header.parse(&buffer);
 }
 
@@ -55,9 +55,9 @@ impl Tzfile {
         let tzh_typecnt_end = tzh_timecnt_end + tzh_typecnt_len;
         let tzh_leapcnt_end = tzh_typecnt_end + tzh_leapcnt_len;
         let tzh_charcnt_end = tzh_leapcnt_end + tzh_charcnt_len;
-        println!("tzh_timecnt_end : {:x?}", tzh_timecnt_end);
-        println!("tzh_typecnt_end : {:x?}", tzh_typecnt_end);
-        println!("tzh_leapcnt_end : {:x?}", tzh_leapcnt_end);
-        println!("tzh_charcnt_end : {:x?}", tzh_charcnt_end);
+        println!("tzh_timecnt_len : {:x?}       tzh_timecnt_end : {:x?}", tzh_timecnt_len, tzh_timecnt_end);
+        println!("tzh_typecnt_len : {:x?}       tzh_typecnt_end : {:x?}", tzh_typecnt_len, tzh_typecnt_end);
+        println!("tzh_leapcnt_len : {:x?}       tzh_leapcnt_end : {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
+        println!("tzh_charcnt_len : {:x?}       tzh_charcnt_end : {:x?}", tzh_charcnt_len, tzh_charcnt_end);
     }
 }
