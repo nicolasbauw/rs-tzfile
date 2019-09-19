@@ -1,5 +1,7 @@
 use std::io::prelude::*;
 use std::fs::File;
+use std::env;
+use std::path::Path;
 //use std::str::from_utf8;
 use byteorder::{ByteOrder, BE};
 
@@ -21,7 +23,12 @@ struct Tzfile {
 }
 
 fn main() {
-    let mut f = File::open("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/America/Phoenix").unwrap();
+    let mut tz_files_location: String = String::from("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/");
+    let args: Vec<String> = env::args().collect();
+    let requested_timezone = &args[1];
+    tz_files_location.push_str(requested_timezone);
+    let path = Path::new(&tz_files_location);
+    let mut f = File::open(path).unwrap();
     let mut buffer = Vec::new();
     // read the whole file
     f.read_to_end(&mut buffer).unwrap();
