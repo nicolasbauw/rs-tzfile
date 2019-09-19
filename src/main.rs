@@ -63,7 +63,7 @@ impl Tzfile {
         println!("tzh_charcnt_len : {:x?}       tzh_charcnt_end : {:x?}", tzh_charcnt_len, tzh_charcnt_end);
 
         let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
-        println!("Timezone names : {:?}", names);
+        println!("Timezone names : {}", names);
     }
 
     fn read(tz: &str) -> Vec<u8> {
