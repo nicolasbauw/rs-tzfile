@@ -1,5 +1,5 @@
 [package]
-name = "tzfile-to-json"
+name = "rs-tzfile"
 version = "0.1.0"
 authors = ["Nicolas BAUW <nicolas.bauw@leroymerlin.fr>"]
 edition = "2018"
