@@ -12,7 +12,7 @@ fn main() {
     let buffer = Tzfile::read(&requested_timezone);
     let header = Tzfile::header(&buffer);
     println!("Valid TZfile : {}", (header.magic == MAGIC));
-    println!("{:x?}", header);
+    println!("{:?}", header);
     header.parse(&buffer);
 }
 
@@ -57,10 +57,10 @@ impl Tzfile {
         let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;
         let tzh_leapcnt_end: usize = tzh_typecnt_end + tzh_leapcnt_len;
         let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
-        println!("tzh_timecnt_len : {:x?}       tzh_timecnt_end : {:x?}", tzh_timecnt_len, tzh_timecnt_end);
-        println!("tzh_typecnt_len : {:x?}       tzh_typecnt_end : {:x?}", tzh_typecnt_len, tzh_typecnt_end);
-        println!("tzh_leapcnt_len : {:x?}       tzh_leapcnt_end : {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
-        println!("tzh_charcnt_len : {:x?}       tzh_charcnt_end : {:x?}", tzh_charcnt_len, tzh_charcnt_end);
+        println!("tzh_timecnt_len (dec): {:?}       tzh_timecnt_end (hex): {:x?}", tzh_timecnt_len, tzh_timecnt_end);
+        println!("tzh_typecnt_len (dec): {:?}       tzh_typecnt_end (hex): {:x?}", tzh_typecnt_len, tzh_typecnt_end);
+        println!("tzh_leapcnt_len (dec): {:?}       tzh_leapcnt_end (hex): {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
+        println!("tzh_charcnt_len (dec): {:?}       tzh_charcnt_end (hex): {:x?}", tzh_charcnt_len, tzh_charcnt_end);
 
         let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
         println!("Timezone names : {}", names);
