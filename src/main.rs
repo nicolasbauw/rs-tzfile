@@ -5,6 +5,17 @@ use std::path::Path;
 //use std::str::from_utf8;
 use byteorder::{ByteOrder, BE};
 
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let requested_timezone = &args[1];
+
+    let buffer = Tzfile::read(&requested_timezone);
+    let header = Tzfile::header(&buffer);
+    println!("Valid TZfile : {}", (header.magic == MAGIC));
+    println!("{:x?}", header);
+    header.parse(&buffer);
+}
+
 // TZif magic four bytes
 static MAGIC: u32 = 0x545A6966;
 // End of first (V1) header
@@ -20,22 +31,6 @@ struct Tzfile {
     tzh_timecnt: i32,
     tzh_typecnt: i32,
     tzh_charcnt: i32,
-}
-
-fn main() {
-    let mut tz_files_location: String = String::from("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/");
-    let args: Vec<String> = env::args().collect();
-    let requested_timezone = &args[1];
-    tz_files_location.push_str(requested_timezone);
-    let path = Path::new(&tz_files_location);
-    let mut f = File::open(path).unwrap();
-    let mut buffer = Vec::new();
-    // read the whole file
-    f.read_to_end(&mut buffer).unwrap();
-    let header = Tzfile::header(&buffer);
-    println!("Valid TZfile : {}", (header.magic == MAGIC));
-    println!("{:x?}", header);
-    header.parse(&buffer);
 }
 
 impl Tzfile {
@@ -66,5 +61,16 @@ impl Tzfile {
         println!("tzh_typecnt_len : {:x?}       tzh_typecnt_end : {:x?}", tzh_typecnt_len, tzh_typecnt_end);
         println!("tzh_leapcnt_len : {:x?}       tzh_leapcnt_end : {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
         println!("tzh_charcnt_len : {:x?}       tzh_charcnt_end : {:x?}", tzh_charcnt_len, tzh_charcnt_end);
+    }
+
+    fn read(tz: &str) -> Vec<u8> {
+    let mut tz_files_location: String = String::from("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/");
+    tz_files_location.push_str(tz);
+    let path = Path::new(&tz_files_location);
+    let mut f = File::open(path).unwrap();
+    let mut buffer = Vec::new();
+    // read the whole file
+    f.read_to_end(&mut buffer).unwrap();
+    buffer
     }
 }
