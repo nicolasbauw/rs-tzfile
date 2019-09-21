@@ -63,12 +63,24 @@ impl Tzfile {
         println!("tzh_leapcnt_len (dec): {:?}       tzh_leapcnt_end (hex): {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
         println!("tzh_charcnt_len (dec): {:?}       tzh_charcnt_end (hex): {:x?}", tzh_charcnt_len, tzh_charcnt_end);
 
-        //let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
-        let names: Vec<&str> = buffer[tzh_leapcnt_end..tzh_charcnt_end]
+        let tzh_timecnt_data: Vec<&[u8]> = buffer[V1_HEADER_END..V1_HEADER_END+self.tzh_timecnt*4]
+            .chunks_exact(4)
+            //.map(|char| { from_utf8(char).unwrap() })
+            .collect();
+            println!("tzh_timecnt : {:x?}", tzh_timecnt_data);
+
+        let tzh_timecnt_indices: Vec<&[u8]> = buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end]
+            .chunks_exact(1)
+            //.map(|char| { from_utf8(char).unwrap() })
+            .collect();
+            println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
+
+        let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
+        /*let names: Vec<&str> = buffer[tzh_leapcnt_end..tzh_charcnt_end]
             .chunks_exact(4)
             .map(|char| { from_utf8(char).unwrap() })
-            .collect();
-        println!("Timezone names : {:?}", names);
+            .collect();*/
+        println!("Timezone names : {}", names);
 
         let seconds=BE::read_i32(&buffer[0x36..0x40]);
         //let offset = FixedOffset::east_opt(seconds);
