@@ -23,6 +23,13 @@ static MAGIC: u32 = 0x545A6966;
 static V1_HEADER_END: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+struct ttinfo {
+        tt_gmtoff: i32,
+        tt_isdst: u8,
+        tt_abbrind: u8,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct Tzfile {
     magic: u32,
     version: u8,
@@ -65,15 +72,25 @@ impl Tzfile {
 
         let tzh_timecnt_data: Vec<&[u8]> = buffer[V1_HEADER_END..V1_HEADER_END+self.tzh_timecnt*4]
             .chunks_exact(4)
-            //.map(|char| { from_utf8(char).unwrap() })
             .collect();
             println!("tzh_timecnt : {:x?}", tzh_timecnt_data);
 
         let tzh_timecnt_indices: Vec<&[u8]> = buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end]
-            .chunks_exact(1)
-            //.map(|char| { from_utf8(char).unwrap() })
+            .chunks(1)
             .collect();
             println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
+
+        let tzh_typecnt: Vec<ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
+            .chunks_exact(6)
+            .map(|tti| {
+                ttinfo {
+                    tt_gmtoff: BE::read_i32(&tti[0..4]),
+                    tt_isdst: tti[4],
+                    tt_abbrind: tti[5],
+                }
+            })
+            .collect();
+            println!("tzh_timecnt : {:?}", tzh_typecnt);
 
         let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
         /*let names: Vec<&str> = buffer[tzh_leapcnt_end..tzh_charcnt_end]
