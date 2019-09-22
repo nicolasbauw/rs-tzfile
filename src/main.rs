@@ -89,7 +89,8 @@ impl Tzfile {
     }
 
     fn read(tz: &str) -> Vec<u8> {
-    let mut tz_files_root: String = String::from("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/");
+    let mut tz_files_root = env::var("DATA_ROOT").unwrap_or(format!("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/"));
+    //let mut tz_files_root: String = String::from("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/");
     tz_files_root.push_str(tz);
     let path = Path::new(&tz_files_root);
     let mut f = File::open(path).unwrap();
