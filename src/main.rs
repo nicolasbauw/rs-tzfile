@@ -90,7 +90,7 @@ impl Tzfile {
                 }
             })
             .collect();
-            println!("tzh_timecnt : {:?}", tzh_typecnt);
+            println!("tzh_typecnt : {:?}", tzh_typecnt);
 
         let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
         /*let names: Vec<&str> = buffer[tzh_leapcnt_end..tzh_charcnt_end]
