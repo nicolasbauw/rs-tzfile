@@ -99,10 +99,6 @@ impl Tzfile {
             .collect();*/
         println!("Timezone names : {}", names);
 
-        let seconds=BE::read_i32(&buffer[0x36..0x40]);
-        //let offset = FixedOffset::east_opt(seconds);
-        println!("UTC offset : {:?}", seconds);
-        //println!("{:?}", offset);
     }
 
     fn read(tz: &str) -> Vec<u8> {
