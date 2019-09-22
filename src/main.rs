@@ -4,7 +4,7 @@ use std::env;
 use std::path::Path;
 use std::str::from_utf8;
 use byteorder::{ByteOrder, BE};
-use chrono::prelude::*;
+//use chrono::prelude::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -23,7 +23,7 @@ static MAGIC: u32 = 0x545A6966;
 static V1_HEADER_END: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-struct ttinfo {
+struct Ttinfo {
         tt_gmtoff: i32,
         tt_isdst: u8,
         tt_abbrind: u8,
@@ -80,10 +80,10 @@ impl Tzfile {
             .collect();
             println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
 
-        let tzh_typecnt: Vec<ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
+        let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
             .chunks_exact(6)
             .map(|tti| {
-                ttinfo {
+                Ttinfo {
                     tt_gmtoff: BE::read_i32(&tti[0..4]),
                     tt_isdst: tti[4],
                     tt_abbrind: tti[5],
