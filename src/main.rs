@@ -70,10 +70,13 @@ impl Tzfile {
         println!("tzh_leapcnt_len (dec): {:?}       tzh_leapcnt_end (hex): {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
         println!("tzh_charcnt_len (dec): {:?}       tzh_charcnt_end (hex): {:x?}", tzh_charcnt_len, tzh_charcnt_end);
 
-        let tzh_timecnt_data: Vec<&[u8]> = buffer[V1_HEADER_END..V1_HEADER_END+self.tzh_timecnt*4]
+        let tzh_timecnt_data: Vec<i32> = buffer[V1_HEADER_END..V1_HEADER_END+self.tzh_timecnt*4]
             .chunks_exact(4)
+            .map(|tt| {
+                BE::read_i32(tt)
+            })
             .collect();
-            println!("tzh_timecnt : {:x?}", tzh_timecnt_data);
+            println!("tzh_timecnt : {:?}", tzh_timecnt_data);
 
         let tzh_timecnt_indices: Vec<&[u8]> = buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end]
             .chunks(1)
