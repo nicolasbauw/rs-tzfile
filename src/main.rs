@@ -4,7 +4,7 @@ use std::env;
 use std::path::Path;
 use std::str::from_utf8;
 use byteorder::{ByteOrder, BE};
-//use chrono::prelude::*;
+use chrono::prelude::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -70,10 +70,10 @@ impl Tzfile {
         println!("tzh_leapcnt_len (dec): {:?}       tzh_leapcnt_end (hex): {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
         println!("tzh_charcnt_len (dec): {:?}       tzh_charcnt_end (hex): {:x?}", tzh_charcnt_len, tzh_charcnt_end);
 
-        let tzh_timecnt_data: Vec<i32> = buffer[V1_HEADER_END..V1_HEADER_END+self.tzh_timecnt*4]
+        let tzh_timecnt_data: Vec<DateTime::<Utc>> = buffer[V1_HEADER_END..V1_HEADER_END+self.tzh_timecnt*4]
             .chunks_exact(4)
             .map(|tt| {
-                BE::read_i32(tt)
+                Utc.timestamp(BE::read_i32(tt).into(), 0)
             })
             .collect();
             println!("tzh_timecnt : {:?}", tzh_timecnt_data);
