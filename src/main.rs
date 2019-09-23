@@ -78,10 +78,8 @@ impl Tzfile {
             .collect();
             println!("tzh_timecnt : {:?}", tzh_timecnt_data);
 
-        let tzh_timecnt_indices: Vec<&[u8]> = buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end]
-            .chunks(1)
-            .collect();
-            println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
+        let tzh_timecnt_indices: &[u8] = &buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end];
+        println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
 
         let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
             .chunks_exact(6)
