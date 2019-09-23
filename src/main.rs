@@ -76,7 +76,7 @@ impl Tzfile {
                 Utc.timestamp(BE::read_i32(tt).into(), 0)
             })
             .collect();
-            println!("tzh_timecnt : {:?}", tzh_timecnt_data);
+        println!("tzh_timecnt : {:?}", tzh_timecnt_data);
 
         let tzh_timecnt_indices: &[u8] = &buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end];
         println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
@@ -87,18 +87,17 @@ impl Tzfile {
                 Ttinfo {
                     tt_gmtoff: BE::read_i32(&tti[0..4]),
                     tt_isdst: tti[4],
-                    tt_abbrind: tti[5],
+                    tt_abbrind: tti[5]/4,
                 }
             })
             .collect();
-            println!("tzh_typecnt : {:?}", tzh_typecnt);
+        println!("tzh_typecnt : {:?}", tzh_typecnt);
 
-        let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
-        /*let names: Vec<&str> = buffer[tzh_leapcnt_end..tzh_charcnt_end]
-            .chunks_exact(4)
-            .map(|char| { from_utf8(char).unwrap() })
-            .collect();*/
-        println!("Timezone names : {}", names);
+        //let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
+        let names: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap()
+            .split("\u{0}")
+            .collect();
+        println!("Timezone names : {:?}", names);
 
     }
 
