@@ -12,8 +12,6 @@ fn main() {
 
     let buffer = Tzfile::read(&requested_timezone);
     let header = Tzfile::parse_header(&buffer);
-    /*println!("Valid TZfile : {}", (header.magic == MAGIC));
-    println!("{:?}", header);*/
     if header.magic == MAGIC { println!("{:?}", header.parse(&buffer)); } else { return };
 }
 
@@ -73,21 +71,16 @@ impl Tzfile {
         let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;
         let tzh_leapcnt_end: usize = tzh_typecnt_end + tzh_leapcnt_len;
         let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
-        /*println!("tzh_timecnt_len (dec): {:?}       tzh_timecnt_end (hex): {:x?}", tzh_timecnt_len, tzh_timecnt_end);
-        println!("tzh_typecnt_len (dec): {:?}       tzh_typecnt_end (hex): {:x?}", tzh_typecnt_len, tzh_typecnt_end);
-        println!("tzh_leapcnt_len (dec): {:?}       tzh_leapcnt_end (hex): {:x?}", tzh_leapcnt_len, tzh_leapcnt_end);
-        println!("tzh_charcnt_len (dec): {:?}       tzh_charcnt_end (hex): {:x?}", tzh_charcnt_len, tzh_charcnt_end);*/
 
+        // Extracting data fields
         let tzh_timecnt_data: Vec<DateTime::<Utc>> = buffer[V1_HEADER_END..V1_HEADER_END+self.tzh_timecnt*4]
             .chunks_exact(4)
             .map(|tt| {
                 Utc.timestamp(BE::read_i32(tt).into(), 0)
             })
             .collect();
-        //println!("tzh_timecnt : {:?}", tzh_timecnt_data);
 
         let tzh_timecnt_indices: &[u8] = &buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end];
-        //println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
 
         let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
             .chunks_exact(6)
@@ -99,13 +92,11 @@ impl Tzfile {
                 }
             })
             .collect();
-        //println!("tzh_typecnt : {:?}", tzh_typecnt);
 
-        //let tz_abbr = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
         let tz_abbr: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap()
             .split("\u{0}")
             .collect();
-        //println!("Timezone names : {:?}", tz_abbr);
+
         RsTz {
             tzh_timecnt_data: tzh_timecnt_data,
             tzh_timecnt_indices: tzh_timecnt_indices,
@@ -116,12 +107,10 @@ impl Tzfile {
 
     fn read(tz: &str) -> Vec<u8> {
     let mut tz_files_root = env::var("DATA_ROOT").unwrap_or(format!("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/"));
-    //let mut tz_files_root: String = String::from("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/");
     tz_files_root.push_str(tz);
     let path = Path::new(&tz_files_root);
     let mut f = File::open(path).unwrap();
     let mut buffer = Vec::new();
-    // read the whole file
     f.read_to_end(&mut buffer).unwrap();
     buffer
     }
