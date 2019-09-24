@@ -63,7 +63,7 @@ impl Tzfile {
         }
     }
 
-    fn parse<'b>(&self, buffer: &'b [u8]) -> Vec<&'b str> {
+    fn parse<'a>(&self, buffer: &'a [u8]) -> RsTz<'a> {
         // Calculates fields lengths and indexes (Version 1 format)
         let tzh_timecnt_len: usize = self.tzh_timecnt*5;
         let tzh_typecnt_len: usize = self.tzh_typecnt*6;
@@ -84,10 +84,10 @@ impl Tzfile {
                 Utc.timestamp(BE::read_i32(tt).into(), 0)
             })
             .collect();
-        println!("tzh_timecnt : {:?}", tzh_timecnt_data);
+        //println!("tzh_timecnt : {:?}", tzh_timecnt_data);
 
         let tzh_timecnt_indices: &[u8] = &buffer[V1_HEADER_END+self.tzh_timecnt*4..tzh_timecnt_end];
-        println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
+        //println!("tzh_timecnt : {:x?}", tzh_timecnt_indices);
 
         let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
             .chunks_exact(6)
@@ -99,20 +99,19 @@ impl Tzfile {
                 }
             })
             .collect();
-        println!("tzh_typecnt : {:?}", tzh_typecnt);
+        //println!("tzh_typecnt : {:?}", tzh_typecnt);
 
         //let tz_abbr = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
         let tz_abbr: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap()
             .split("\u{0}")
             .collect();
-        println!("Timezone names : {:?}", tz_abbr);
-        /*RsTz {
+        //println!("Timezone names : {:?}", tz_abbr);
+        RsTz {
             tzh_timecnt_data: tzh_timecnt_data,
             tzh_timecnt_indices: tzh_timecnt_indices,
             tzh_typecnt: tzh_typecnt,
             tz_abbr: tz_abbr
-        }*/
-        tz_abbr
+        }
     }
 
     fn read(tz: &str) -> Vec<u8> {
