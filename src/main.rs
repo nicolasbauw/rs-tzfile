@@ -49,7 +49,7 @@ struct Tzfile {
     tzh_charcnt: usize,
 }
 
- impl Tzfile {
+impl Tzfile {
     fn parse_header(buffer: &[u8]) -> Tzfile {
         Tzfile {
             magic: BE::read_u32(&buffer[0x00..=0x03]),
@@ -63,7 +63,7 @@ struct Tzfile {
         }
     }
 
-    fn parse(&self, buffer: &[u8]) {
+    fn parse<'b>(&self, buffer: &'b [u8]) -> Vec<&'b str> {
         // Calculates fields lengths and indexes (Version 1 format)
         let tzh_timecnt_len: usize = self.tzh_timecnt*5;
         let tzh_typecnt_len: usize = self.tzh_typecnt*6;
@@ -112,6 +112,7 @@ struct Tzfile {
             tzh_typecnt: tzh_typecnt,
             tz_abbr: tz_abbr
         }*/
+        tz_abbr
     }
 
     fn read(tz: &str) -> Vec<u8> {
