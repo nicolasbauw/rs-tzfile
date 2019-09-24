@@ -1,7 +1,7 @@
 [package]
-name = "rs-tzfile"
+name = "rstzfile"
 version = "0.1.0"
-authors = ["Nicolas BAUW <nicolas.bauw@leroymerlin.fr>"]
+authors = ["Nicolas BAUW <nicolas.bauw@hotmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

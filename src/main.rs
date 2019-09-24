@@ -1,6 +1,6 @@
-extern crate rs_tzfile;
+extern crate rstzfile;
 use std::env;
-use rs_tzfile::*;
+use rstzfile::*;
 
 static MAGIC: u32 = 0x545A6966;
 
