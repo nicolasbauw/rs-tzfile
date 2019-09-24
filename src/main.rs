@@ -14,13 +14,21 @@ fn main() {
     let header = Tzfile::header(&buffer);
     /*println!("Valid TZfile : {}", (header.magic == MAGIC));
     println!("{:?}", header);*/
-    if header.magic == MAGIC { header.parse(&buffer) };
+    if header.magic == MAGIC { println!("{:?}", header.parse(&buffer)); } else { return };
 }
 
 // TZif magic four bytes
 static MAGIC: u32 = 0x545A6966;
 // End of first (V1) header
 static V1_HEADER_END: usize = 0x2C;
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct RsTz<'a> {
+    tzh_timecnt_data: Vec<DateTime::<Utc>>,
+    tzh_timecnt_indices: &'a [u8],
+    tzh_typecnt: Vec<Ttinfo>,
+    tz_abbr: Vec<&'a str>
+}
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Ttinfo {
@@ -98,7 +106,12 @@ impl Tzfile {
             .split("\u{0}")
             .collect();
         println!("Timezone names : {:?}", tz_abbr);
-
+        /*RsTz {
+            tzh_timecnt_data: tzh_timecnt_data,
+            tzh_timecnt_indices: tzh_timecnt_indices,
+            tzh_typecnt: tzh_typecnt,
+            tz_abbr: tz_abbr
+        }*/
     }
 
     fn read(tz: &str) -> Vec<u8> {
