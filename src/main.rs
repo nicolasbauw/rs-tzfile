@@ -11,7 +11,7 @@ fn main() {
     let requested_timezone = &args[1];
 
     let buffer = Tzfile::read(&requested_timezone);
-    let header = Tzfile::header(&buffer);
+    let header = Tzfile::parse_header(&buffer);
     /*println!("Valid TZfile : {}", (header.magic == MAGIC));
     println!("{:?}", header);*/
     if header.magic == MAGIC { println!("{:?}", header.parse(&buffer)); } else { return };
@@ -49,8 +49,8 @@ struct Tzfile {
     tzh_charcnt: usize,
 }
 
-impl Tzfile {
-    fn header(buffer: &[u8]) -> Tzfile {
+ impl Tzfile {
+    fn parse_header(buffer: &[u8]) -> Tzfile {
         Tzfile {
             magic: BE::read_u32(&buffer[0x00..=0x03]),
             version: buffer[4],
