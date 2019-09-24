@@ -93,11 +93,11 @@ impl Tzfile {
             .collect();
         println!("tzh_typecnt : {:?}", tzh_typecnt);
 
-        //let names = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
-        let names: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap()
+        //let tz_abbr = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap();
+        let tz_abbr: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap()
             .split("\u{0}")
             .collect();
-        println!("Timezone names : {:?}", names);
+        println!("Timezone names : {:?}", tz_abbr);
 
     }
 
