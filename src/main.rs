@@ -1,8 +1,4 @@
-use std::io::prelude::*;
-use std::fs::File;
-use std::env;
-use std::path::Path;
-use std::str::from_utf8;
+use std::{io::prelude::*, fs::File, env, path::Path, str::from_utf8};
 use byteorder::{ByteOrder, BE};
 use chrono::prelude::*;
 
