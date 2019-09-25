@@ -1,11 +1,37 @@
-use std::{io::prelude::*, fs::File, env, path::Path, str::from_utf8};
+use std::{io::prelude::*, fs::File, env, path::Path, str::from_utf8, error, fmt};
 use byteorder::{ByteOrder, BE};
 use chrono::prelude::*;
 
 // TZif magic four bytes
-//static MAGIC: u32 = 0x545A6966;
+static MAGIC: u32 = 0x545A6966;
 // End of first (V1) header
 static V1_HEADER_END: usize = 0x2C;
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum Error {
+    // The source file is too short to parse the header.
+    FileTooShort,
+    // Invalid file format.
+    InvalidMagic,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("tzfile error: ")?;
+        f.write_str(match self {
+            Error::FileTooShort => "file too short",
+            Error::InvalidMagic => "invalid magic",
+        })
+    }
+}
+
+impl error::Error for Error {}
+
+impl From<Error> for std::io::Error {
+    fn from(e: Error) -> std::io::Error {
+        std::io::Error::new(std::io::ErrorKind::Other, e)
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RsTz<'a> {
@@ -35,9 +61,11 @@ pub struct Tzfile {
 }
 
 impl Tzfile {
-    pub fn parse_header(buffer: &[u8]) -> Tzfile {
-        Tzfile {
-            magic: BE::read_u32(&buffer[0x00..=0x03]),
+    pub fn parse_header(buffer: &[u8]) -> Result<Tzfile, Error> {
+        let magic = BE::read_u32(&buffer[0x00..=0x03]);
+        if magic != MAGIC { return Err(Error::InvalidMagic) }
+        Ok(Tzfile {
+            magic: magic,
             version: buffer[4],
             tzh_ttisgmtcnt: BE::read_i32(&buffer[0x14..=0x17]) as usize,
             tzh_ttisstdcnt: BE::read_i32(&buffer[0x18..=0x1B]) as usize,
@@ -45,7 +73,7 @@ impl Tzfile {
             tzh_timecnt: BE::read_i32(&buffer[0x20..=0x23]) as usize,
             tzh_typecnt: BE::read_i32(&buffer[0x24..=0x27]) as usize,
             tzh_charcnt: BE::read_i32(&buffer[0x28..=0x2b]) as usize,
-        }
+        })
     }
 
     pub fn parse<'a>(&self, buffer: &'a [u8]) -> RsTz<'a> {
@@ -92,13 +120,13 @@ impl Tzfile {
         }
     }
 
-    pub fn read(tz: &str) -> Vec<u8> {
+    pub fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
     let mut tz_files_root = env::var("DATA_ROOT").unwrap_or(format!("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/"));
     tz_files_root.push_str(tz);
     let path = Path::new(&tz_files_root);
-    let mut f = File::open(path).unwrap();
+    let mut f = File::open(path)?;
     let mut buffer = Vec::new();
-    f.read_to_end(&mut buffer).unwrap();
-    buffer
+    f.read_to_end(&mut buffer)?;
+    Ok(buffer)
     }
 }
