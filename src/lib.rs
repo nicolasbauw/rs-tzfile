@@ -47,7 +47,7 @@ struct Ttinfo {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Tzfile {
-    pub magic: u32,
+    magic: u32,
     version: u8,
     tzh_ttisgmtcnt: usize,
     tzh_ttisstdcnt: usize,
