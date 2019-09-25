@@ -9,8 +9,6 @@ static V1_HEADER_END: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Error {
-    // The source file is too short to parse the header.
-    FileTooShort,
     // Invalid file format.
     InvalidMagic,
 }
@@ -19,8 +17,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("tzfile error: ")?;
         f.write_str(match self {
-            Error::FileTooShort => "file too short",
-            Error::InvalidMagic => "invalid magic",
+            Error::InvalidMagic => "invalid TZfile",
         })
     }
 }
