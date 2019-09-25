@@ -42,11 +42,11 @@ fn parse(requested_timezone: &str, year: i32) {
     if timechanges.len() !=0 {
         //println!("Time changes for specified year at index : {:?}", timechanges);
         for t in 0..timechanges.len() {
-            println!("{:?}", timezone.tzh_timecnt_data[timechanges[t]]);
+            println!("{:?} {:?}", timezone.tzh_timecnt_data[timechanges[t]], timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize]);
         }
     }
     else {
-        println!("Latest time change for specified year at index : {:?}", nearest_timechange);
-        println!("{:?}", timezone.tzh_timecnt_data[nearest_timechange]);
+        //println!("Latest time change for specified year at index : {:?}", nearest_timechange);
+        println!("{:?} {:?}", timezone.tzh_timecnt_data[nearest_timechange], timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize]);
     };
 }
