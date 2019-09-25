@@ -105,9 +105,11 @@ impl Tzfile {
             })
             .collect();
 
-        let tz_abbr: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap()
+        let mut tz_abbr: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end]).unwrap()
             .split("\u{0}")
             .collect();
+        // Removes last empty string
+        tz_abbr.pop().unwrap();
 
         RsTz {
             tzh_timecnt_data: tzh_timecnt_data,
