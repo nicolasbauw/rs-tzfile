@@ -6,11 +6,14 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let requested_timezone = &args[1];
 
-    let buffer = Tzfile::read(&requested_timezone).unwrap();
+    let buffer = match Tzfile::read(&requested_timezone) {
+        Ok(b) => b,
+        Err(e) => { println!("{}",e) ; return }
+    };
     let header = Tzfile::parse_header(&buffer);
 
     match header {
         Ok(h) => println!("{:?}", h.parse(&buffer)),
-        Err(_) => return,
+        Err(e) => { println!("{}",e) ; return }
     }
 }
