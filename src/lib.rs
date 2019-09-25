@@ -40,7 +40,7 @@ pub struct RsTz<'a> {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Ttinfo {
-        pub tt_gmtoff: i32,
+        pub tt_gmtoff: usize,
         pub tt_isdst: u8,
         pub tt_abbrind: u8,
 }
@@ -98,7 +98,7 @@ impl Tzfile {
             .chunks_exact(6)
             .map(|tti| {
                 Ttinfo {
-                    tt_gmtoff: BE::read_i32(&tti[0..4]),
+                    tt_gmtoff: BE::read_i32(&tti[0..4]) as usize,
                     tt_isdst: tti[4],
                     tt_abbrind: tti[5]/4,
                 }

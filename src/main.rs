@@ -26,10 +26,10 @@ fn parse(requested_timezone: &str, year: i32) {
         Err(e) => { println!("{}",e) ; return }
     };
 
-    println!("{:?}", timezone);
+    //println!("{:?}", timezone);
 
     let mut timechanges = Vec::new();
-    let mut nearest_timechange: i32 = 0;
+    let mut nearest_timechange: usize = 0;
     let currentyearbeg = Utc.ymd(year, 1, 1).and_hms(0, 0, 0);
     let currentyearend = Utc.ymd(year, 12, 31).and_hms(0, 0, 0);
     
@@ -39,6 +39,14 @@ fn parse(requested_timezone: &str, year: i32) {
         if timezone.tzh_timecnt_data[t] < currentyearbeg { nearest_timechange = t.try_into().unwrap(); };
     }
     
-    if timechanges.len() !=0 { println!("Time changes for specified year at index : {:?}", timechanges) }
-    else { println!("Latest time change for specified year at index : {:?}", nearest_timechange) };
+    if timechanges.len() !=0 {
+        //println!("Time changes for specified year at index : {:?}", timechanges);
+        for t in 0..timechanges.len() {
+            println!("{:?}", timezone.tzh_timecnt_data[timechanges[t]]);
+        }
+    }
+    else {
+        println!("Latest time change for specified year at index : {:?}", nearest_timechange);
+        println!("{:?}", timezone.tzh_timecnt_data[nearest_timechange]);
+    };
 }
