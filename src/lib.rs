@@ -32,17 +32,17 @@ impl From<Error> for std::io::Error {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RsTz<'a> {
-    tzh_timecnt_data: Vec<DateTime::<Utc>>,
-    tzh_timecnt_indices: &'a [u8],
-    tzh_typecnt: Vec<Ttinfo>,
-    tz_abbr: Vec<&'a str>
+    pub tzh_timecnt_data: Vec<DateTime::<Utc>>,
+    pub tzh_timecnt_indices: &'a [u8],
+    pub tzh_typecnt: Vec<Ttinfo>,
+    pub tz_abbr: Vec<&'a str>
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-struct Ttinfo {
-        tt_gmtoff: i32,
-        tt_isdst: u8,
-        tt_abbrind: u8,
+pub struct Ttinfo {
+        pub tt_gmtoff: i32,
+        pub tt_isdst: u8,
+        pub tt_abbrind: u8,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
