@@ -49,7 +49,7 @@ pub fn export(requested_timezone: &str, year: i32) {
     let mut nearest_timechange: usize = 0;
 
     // Used to store parsed useful data
-    //let mut parsedtimechanges = Vec::new();
+    let mut parsedtimechanges = Vec::new();
 
     // for year comparison
     let currentyearbeg = Utc.ymd(year, 1, 1).and_hms(0, 0, 0);
@@ -76,11 +76,7 @@ pub fn export(requested_timezone: &str, year: i32) {
                 isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_isdst == 1,
                 abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_abbrind as usize].to_string(),
             };
-            println!(
-                "{:?} {:?} {:?}",
-                timezone.tzh_timecnt_data[timechanges[t]],
-                timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize],tc
-            );
+            parsedtimechanges.push(tc);
         }
     } else {
         let tc = Timechange {
@@ -89,13 +85,8 @@ pub fn export(requested_timezone: &str, year: i32) {
                 isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_isdst == 1,
                 abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_abbrind as usize].to_string(),
         };
-        //println!("Latest time change for specified year at index : {:?}", nearest_timechange);
-        println!(
-            "{:?} {:?} {:?}",
-            timezone.tzh_timecnt_data[nearest_timechange],
-            timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize],
-            tc
-        );
+        parsedtimechanges.push(tc);
     };
+    println!("{:?}", parsedtimechanges);
 }
 
