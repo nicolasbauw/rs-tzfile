@@ -12,6 +12,14 @@ struct Tzdata {
     abbreviation: String,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct Timechange {
+    time: DateTime<Utc>,
+    gmtoff: FixedOffset,
+    isdst: bool,
+    abbreviation: String
+}
+
 pub fn export(requested_timezone: &str, year: i32) {
     // Opens TZfile
     let buffer = match Tzfile::read(&requested_timezone) {
@@ -36,13 +44,19 @@ pub fn export(requested_timezone: &str, year: i32) {
 
     //println!("{:?}", timezone);
 
+    // used to store timechange indices
     let mut timechanges = Vec::new();
     let mut nearest_timechange: usize = 0;
+
+    // Used to store parsed useful data
+    let mut parsedtimechanges = Vec::new();
+
+    // for year comparison
     let currentyearbeg = Utc.ymd(year, 1, 1).and_hms(0, 0, 0);
     let currentyearend = Utc.ymd(year, 12, 31).and_hms(0, 0, 0);
 
+    // Get and store the timechange indices
     for t in 0..timezone.tzh_timecnt_data.len() {
-        // Get timechanges for selected year
         if timezone.tzh_timecnt_data[t] > currentyearbeg
             && timezone.tzh_timecnt_data[t] < currentyearend
         {
@@ -56,6 +70,7 @@ pub fn export(requested_timezone: &str, year: i32) {
     if timechanges.len() != 0 {
         //println!("Time changes for specified year at index : {:?}", timechanges);
         for t in 0..timechanges.len() {
+            let 
             println!(
                 "{:?} {:?}",
                 timezone.tzh_timecnt_data[timechanges[t]],
