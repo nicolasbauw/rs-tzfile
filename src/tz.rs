@@ -1,3 +1,7 @@
+/* This module's get function is used to retrieve
+time changes and characteristics for a given TZ.
+See function comments for output sample. */
+
 extern crate tzfile;
 use chrono::prelude::*;
 use tzfile::*;
