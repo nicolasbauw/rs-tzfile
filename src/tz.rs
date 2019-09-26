@@ -13,6 +13,7 @@ pub struct Tzdata {
     dst_until: Option<DateTime<Utc>>,
     raw_offset: isize,
     dst_offset: isize,
+    utc_offset: FixedOffset,
     abbreviation: String,
 }
 
@@ -108,6 +109,7 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
         dst_until: Some(parsedtimechanges[1].time),
         raw_offset: parsedtimechanges[1].gmtoff,
         dst_offset: parsedtimechanges[0].gmtoff,
+        utc_offset: if dst == true { FixedOffset::east(parsedtimechanges[0].gmtoff as i32) } else { FixedOffset::east(parsedtimechanges[1].gmtoff as i32) },
         abbreviation: if dst == true { parsedtimechanges[0].abbreviation.clone() } else { parsedtimechanges[1].abbreviation.clone() },
         })
     } else if parsedtimechanges.len()==1 {
@@ -116,6 +118,7 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
         dst_until: None,
         raw_offset: parsedtimechanges[0].gmtoff,
         dst_offset: 0,
+        utc_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
         abbreviation: parsedtimechanges[0].abbreviation.clone(),
         })
     } else { None }
