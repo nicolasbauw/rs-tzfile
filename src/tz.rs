@@ -8,7 +8,7 @@ use tzfile::*;
 use std::convert::TryInto;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-struct Tzdata {
+pub struct Tzdata {
     dst_from: Option<DateTime<Utc>>,
     dst_until: Option<DateTime<Utc>>,
     raw_offset: FixedOffset,
@@ -24,11 +24,10 @@ pub struct Timechange {
     abbreviation: String
 }
 
-/* Returns Option enum of Timechange vec, output sample:
-[Timechange { time: 2019-03-31T01:00:00Z, gmtoff: 7200, isdst: true, abbreviation: "CEST" },
-Timechange { time: 2019-10-27T01:00:00Z, gmtoff: 3600, isdst: false, abbreviation: "CET" }]*/
+/* Returns Option enum of Tzdata struct, output sample:
+dst_from: Some(2019-03-31T01:00:00Z), dst_until: Some(2019-10-27T01:00:00Z), raw_offset: +01:00, dst_offset: +02:00, abbreviation: "CEST"*/
 
-pub fn get(requested_timezone: &str, year: i32) -> Option<Vec<Timechange>> {
+pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
     // Opens TZfile
     let buffer = match Tzfile::read(&requested_timezone) {
         Ok(b) => b,
@@ -95,6 +94,27 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Vec<Timechange>> {
         };
         parsedtimechanges.push(tc);
     }
-    Some(parsedtimechanges)
+    //Some(parsedtimechanges)
+
+    let d = Utc::now();
+    if parsedtimechanges.len() == 2 {
+        // 2 times changes the same year ? DST observed
+        Some(Tzdata {
+        dst_from: Some(parsedtimechanges[0].time),
+        dst_until: Some(parsedtimechanges[1].time),
+        raw_offset: FixedOffset::east(parsedtimechanges[1].gmtoff as i32),
+        dst_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
+        abbreviation: if d > parsedtimechanges[0].time
+            && d < parsedtimechanges[1].time { parsedtimechanges[0].abbreviation.clone() } else { parsedtimechanges[1].abbreviation.clone() },
+        })
+    } else if parsedtimechanges.len()==1 {
+        Some(Tzdata {
+        dst_from: None,
+        dst_until: None,
+        raw_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
+        dst_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
+        abbreviation: parsedtimechanges[0].abbreviation.clone(),
+        })
+    } else { None }
 }
 
