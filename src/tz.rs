@@ -11,8 +11,8 @@ use std::convert::TryInto;
 pub struct Tzdata {
     dst_from: Option<DateTime<Utc>>,
     dst_until: Option<DateTime<Utc>>,
-    raw_offset: FixedOffset,
-    dst_offset: FixedOffset,
+    raw_offset: isize,
+    dst_offset: isize,
     abbreviation: String,
 }
 
@@ -102,8 +102,8 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
         Some(Tzdata {
         dst_from: Some(parsedtimechanges[0].time),
         dst_until: Some(parsedtimechanges[1].time),
-        raw_offset: FixedOffset::east(parsedtimechanges[1].gmtoff as i32),
-        dst_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
+        raw_offset: parsedtimechanges[1].gmtoff,
+        dst_offset: parsedtimechanges[0].gmtoff,
         abbreviation: if d > parsedtimechanges[0].time
             && d < parsedtimechanges[1].time { parsedtimechanges[0].abbreviation.clone() } else { parsedtimechanges[1].abbreviation.clone() },
         })
@@ -111,8 +111,8 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
         Some(Tzdata {
         dst_from: None,
         dst_until: None,
-        raw_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
-        dst_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
+        raw_offset: parsedtimechanges[0].gmtoff,
+        dst_offset: parsedtimechanges[0].gmtoff,
         abbreviation: parsedtimechanges[0].abbreviation.clone(),
         })
     } else { None }
