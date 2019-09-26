@@ -112,7 +112,7 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
         dst_from: None,
         dst_until: None,
         raw_offset: parsedtimechanges[0].gmtoff,
-        dst_offset: parsedtimechanges[0].gmtoff,
+        dst_offset: 0,
         abbreviation: parsedtimechanges[0].abbreviation.clone(),
         })
     } else { None }
