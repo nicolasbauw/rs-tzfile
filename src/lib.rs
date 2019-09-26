@@ -1,3 +1,6 @@
+/* This low-level library reads the binary tzfile and extracts
+the raw data, returning a RsTz struct */
+
 use byteorder::{ByteOrder, BE};
 use chrono::prelude::*;
 use std::{env, error, fmt, fs::File, io::prelude::*, path::Path, str::from_utf8};
