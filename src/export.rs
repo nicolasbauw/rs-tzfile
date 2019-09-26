@@ -3,6 +3,15 @@ use chrono::prelude::*;
 use rstzfile::*;
 use std::convert::TryInto;
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct Tzdata {
+    dst_from: Option<DateTime<Utc>>,
+    dst_until: Option<DateTime<Utc>>,
+    raw_offset: FixedOffset,
+    dst_offset: FixedOffset,
+    abbreviation: String,
+}
+
 pub fn export(requested_timezone: &str, year: i32) {
     // Opens TZfile
     let buffer = match Tzfile::read(&requested_timezone) {
