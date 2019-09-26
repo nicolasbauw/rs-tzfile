@@ -99,13 +99,16 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
     let d = Utc::now();
     if parsedtimechanges.len() == 2 {
         // 2 times changes the same year ? DST observed
+        // Are we in a dst period ? true / false
+        let dst = d > parsedtimechanges[0].time
+            && d < parsedtimechanges[1].time;
+        //println!("{}", dst);
         Some(Tzdata {
         dst_from: Some(parsedtimechanges[0].time),
         dst_until: Some(parsedtimechanges[1].time),
         raw_offset: parsedtimechanges[1].gmtoff,
         dst_offset: parsedtimechanges[0].gmtoff,
-        abbreviation: if d > parsedtimechanges[0].time
-            && d < parsedtimechanges[1].time { parsedtimechanges[0].abbreviation.clone() } else { parsedtimechanges[1].abbreviation.clone() },
+        abbreviation: if dst == true { parsedtimechanges[0].abbreviation.clone() } else { parsedtimechanges[1].abbreviation.clone() },
         })
     } else if parsedtimechanges.len()==1 {
         Some(Tzdata {
