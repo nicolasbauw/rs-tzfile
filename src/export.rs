@@ -15,7 +15,7 @@ struct Tzdata {
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Timechange {
     time: DateTime<Utc>,
-    gmtoff: FixedOffset,
+    gmtoff: isize,
     isdst: bool,
     abbreviation: String
 }
@@ -49,7 +49,7 @@ pub fn export(requested_timezone: &str, year: i32) {
     let mut nearest_timechange: usize = 0;
 
     // Used to store parsed useful data
-    let mut parsedtimechanges = Vec::new();
+    //let mut parsedtimechanges = Vec::new();
 
     // for year comparison
     let currentyearbeg = Utc.ymd(year, 1, 1).and_hms(0, 0, 0);
@@ -70,19 +70,31 @@ pub fn export(requested_timezone: &str, year: i32) {
     if timechanges.len() != 0 {
         //println!("Time changes for specified year at index : {:?}", timechanges);
         for t in 0..timechanges.len() {
-            let 
+            let tc = Timechange {
+                time: timezone.tzh_timecnt_data[timechanges[t]],
+                gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_gmtoff,
+                isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_isdst == 1,
+                abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_abbrind as usize].to_string(),
+            };
             println!(
-                "{:?} {:?}",
+                "{:?} {:?} {:?}",
                 timezone.tzh_timecnt_data[timechanges[t]],
-                timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize]
+                timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize],tc
             );
         }
     } else {
+        let tc = Timechange {
+                time: timezone.tzh_timecnt_data[nearest_timechange],
+                gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_gmtoff,
+                isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_isdst == 1,
+                abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_abbrind as usize].to_string(),
+        };
         //println!("Latest time change for specified year at index : {:?}", nearest_timechange);
         println!(
-            "{:?} {:?}",
+            "{:?} {:?} {:?}",
             timezone.tzh_timecnt_data[nearest_timechange],
-            timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize]
+            timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize],
+            tc
         );
     };
 }
