@@ -122,7 +122,7 @@ impl Tzfile {
 
     pub fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
         let mut tz_files_root =
-            env::var("DATA_ROOT").unwrap_or(format!("/Users/nicolasb/Dev/tz/usr/share/zoneinfo/"));
+            env::var("DATA_ROOT").unwrap_or(format!("/usr/share/zoneinfo/"));
         tz_files_root.push_str(tz);
         let path = Path::new(&tz_files_root);
         let mut f = File::open(path)?;
