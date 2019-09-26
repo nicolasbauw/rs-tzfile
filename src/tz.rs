@@ -13,20 +13,24 @@ struct Tzdata {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-struct Timechange {
+pub struct Timechange {
     time: DateTime<Utc>,
     gmtoff: isize,
     isdst: bool,
     abbreviation: String
 }
 
-pub fn export(requested_timezone: &str, year: i32) {
+/* Returns Option enum of Timechange vec, output sample:
+[Timechange { time: 2019-03-31T01:00:00Z, gmtoff: 7200, isdst: true, abbreviation: "CEST" },
+Timechange { time: 2019-10-27T01:00:00Z, gmtoff: 3600, isdst: false, abbreviation: "CET" }]*/
+
+pub fn get(requested_timezone: &str, year: i32) -> Option<Vec<Timechange>> {
     // Opens TZfile
     let buffer = match Tzfile::read(&requested_timezone) {
         Ok(b) => b,
         Err(e) => {
             println!("{}", e);
-            return;
+            return None;
         }
     };
 
@@ -38,7 +42,7 @@ pub fn export(requested_timezone: &str, year: i32) {
         Ok(h) => h.parse(&buffer),
         Err(e) => {
             println!("{}", e);
-            return;
+            return None;
         }
     };
 
@@ -86,7 +90,7 @@ pub fn export(requested_timezone: &str, year: i32) {
                 abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_abbrind as usize].to_string(),
         };
         parsedtimechanges.push(tc);
-    };
-    println!("{:?}", parsedtimechanges);
+    }
+    Some(parsedtimechanges)
 }
 
