@@ -1,6 +1,6 @@
-extern crate rstzfile;
+extern crate tzfile;
 use chrono::prelude::*;
-use rstzfile::*;
+use tzfile::*;
 use std::convert::TryInto;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
