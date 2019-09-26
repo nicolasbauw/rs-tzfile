@@ -32,8 +32,8 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Vec<Timechange>> {
     // Opens TZfile
     let buffer = match Tzfile::read(&requested_timezone) {
         Ok(b) => b,
-        Err(e) => {
-            println!("{}", e);
+        Err(_e) => {
+            //println!("{}", e);
             return None;
         }
     };
@@ -44,8 +44,8 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Vec<Timechange>> {
     // Parses file content
     let timezone = match header {
         Ok(h) => h.parse(&buffer),
-        Err(e) => {
-            println!("{}", e);
+        Err(_e) => {
+            //println!("{}", e);
             return None;
         }
     };
