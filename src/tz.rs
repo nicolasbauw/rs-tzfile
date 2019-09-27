@@ -27,10 +27,11 @@ pub struct Timechange {
     abbreviation: String
 }
 
-/* Returns Option enum of Tzdata struct, output sample:
-dst_from: Some(2019-03-31T01:00:00Z), dst_until: Some(2019-10-27T01:00:00Z), raw_offset: +01:00, dst_offset: +02:00, abbreviation: "CEST"*/
+/* Returns Option enum of Timechange vec, output sample:
+[Timechange { time: 2019-03-31T01:00:00Z, gmtoff: 7200, isdst: true, abbreviation: "CEST" },
+Timechange { time: 2019-10-27T01:00:00Z, gmtoff: 3600, isdst: false, abbreviation: "CET" }]*/
 
-pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
+pub fn get(requested_timezone: &str, year: i32) -> Option<Vec<Timechange>> {
     // Opens TZfile
     let buffer = match Tzfile::read(&requested_timezone) {
         Ok(b) => b,
@@ -97,9 +98,14 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
         };
         parsedtimechanges.push(tc);
     }
-    //Some(parsedtimechanges)
+    Some(parsedtimechanges)
+}
 
-    // This function will go in the world time api
+/* Returns Option enum of Tzdata struct, output sample:
+Tzdata { utc_datetime: 2019-09-27T07:04:09.366157Z, datetime: 2019-09-27T09:04:09.366157+02:00, dst_from: Some(2019-03-31T01:00:00Z), dst_until: Some(2019-10-27T01:00:00Z),
+raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST" }*/
+
+pub fn worldtime(parsedtimechanges: Vec<Timechange>) -> Option<Tzdata> {
     let d = Utc::now();
     if parsedtimechanges.len() == 2 {
         // 2 times changes the same year ? DST observed
