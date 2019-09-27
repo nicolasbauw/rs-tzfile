@@ -9,6 +9,8 @@ use std::convert::TryInto;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Tzdata {
+    utc_datetime: DateTime<Utc>,
+    datetime: DateTime<FixedOffset>,
     dst_from: Option<DateTime<Utc>>,
     dst_until: Option<DateTime<Utc>>,
     raw_offset: isize,
@@ -97,29 +99,36 @@ pub fn get(requested_timezone: &str, year: i32) -> Option<Tzdata> {
     }
     //Some(parsedtimechanges)
 
+    // This function will go in the world time api
     let d = Utc::now();
     if parsedtimechanges.len() == 2 {
         // 2 times changes the same year ? DST observed
         // Are we in a dst period ? true / false
         let dst = d > parsedtimechanges[0].time
             && d < parsedtimechanges[1].time;
+        let utc_offset = if dst == true { FixedOffset::east(parsedtimechanges[0].gmtoff as i32) } else { FixedOffset::east(parsedtimechanges[1].gmtoff as i32) };
         //println!("{}", dst);
         Some(Tzdata {
-        dst_from: Some(parsedtimechanges[0].time),
-        dst_until: Some(parsedtimechanges[1].time),
-        raw_offset: parsedtimechanges[1].gmtoff,
-        dst_offset: parsedtimechanges[0].gmtoff,
-        utc_offset: if dst == true { FixedOffset::east(parsedtimechanges[0].gmtoff as i32) } else { FixedOffset::east(parsedtimechanges[1].gmtoff as i32) },
-        abbreviation: if dst == true { parsedtimechanges[0].abbreviation.clone() } else { parsedtimechanges[1].abbreviation.clone() },
+            utc_datetime: d,
+            datetime: d.with_timezone(&utc_offset),
+            dst_from: Some(parsedtimechanges[0].time),
+            dst_until: Some(parsedtimechanges[1].time),
+            raw_offset: parsedtimechanges[1].gmtoff,
+            dst_offset: parsedtimechanges[0].gmtoff,
+            utc_offset: utc_offset,
+            abbreviation: if dst == true { parsedtimechanges[0].abbreviation.clone() } else { parsedtimechanges[1].abbreviation.clone() },
         })
     } else if parsedtimechanges.len()==1 {
+        let utc_offset = FixedOffset::east(parsedtimechanges[0].gmtoff as i32);
         Some(Tzdata {
-        dst_from: None,
-        dst_until: None,
-        raw_offset: parsedtimechanges[0].gmtoff,
-        dst_offset: 0,
-        utc_offset: FixedOffset::east(parsedtimechanges[0].gmtoff as i32),
-        abbreviation: parsedtimechanges[0].abbreviation.clone(),
+            utc_datetime: d,
+            datetime: d.with_timezone(&utc_offset),
+            dst_from: None,
+            dst_until: None,
+            raw_offset: parsedtimechanges[0].gmtoff,
+            dst_offset: 0,
+            utc_offset: utc_offset,
+            abbreviation: parsedtimechanges[0].abbreviation.clone(),
         })
     } else { None }
 }
