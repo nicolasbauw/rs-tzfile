@@ -3,7 +3,7 @@ the raw data, returning a RsTz struct */
 
 use byteorder::{ByteOrder, BE};
 use chrono::prelude::*;
-use std::{env, error, fmt, fs::File, io::prelude::*, path::Path, str::from_utf8};
+use std::{env, error, fmt, fs::File, io::prelude::*, path::PathBuf, str::from_utf8};
 
 // TZif magic four bytes
 static MAGIC: u32 = 0x545A6966;
@@ -124,11 +124,10 @@ impl Tzfile {
     }
 
     pub fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
-        let mut tz_files_root =
-            env::var("DATA_ROOT").unwrap_or(format!("/usr/share/zoneinfo/"));
-        tz_files_root.push_str(tz);
-        let path = Path::new(&tz_files_root);
-        let mut f = File::open(path)?;
+        let mut tz_files_root = PathBuf::new();
+        tz_files_root.push(env::var("TZFILES_DIR").unwrap_or(format!("/usr/share/zoneinfo/")));
+        tz_files_root.push(tz);
+        let mut f = File::open(tz_files_root)?;
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer)?;
         Ok(buffer)

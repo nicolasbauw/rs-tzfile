@@ -39,8 +39,8 @@ fn main() {
 }
 ```
 
-It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). You can override the TZfiles default location with the DATA_ROOT environment variable (ending by a /). That also works on Windows, for example:
+It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). You can override the TZfiles default location with the TZFILES_DIR environment variable (ending by a /). That also works on Windows, for example:
 
 ```
-$env:DATA_ROOT="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
+$env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
 ```
