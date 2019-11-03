@@ -1,6 +1,7 @@
 /* This low-level library reads the binary tzfile and extracts
 the raw data, returning a RsTz struct */
 
+use dirs;
 use byteorder::{ByteOrder, BE};
 use chrono::prelude::*;
 use std::{env, error, fmt, fs::File, io::prelude::*, path::PathBuf, str::from_utf8};
@@ -124,8 +125,17 @@ impl Tzfile {
     }
 
     pub fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
-        let mut tz_files_root = PathBuf::new();
-        tz_files_root.push(env::var("TZFILES_DIR").unwrap_or(format!("/usr/share/zoneinfo/")));
+        let mut tz_files_root = if cfg!(windows) && env::var_os("TZFILES_DIR").is_none() {
+            // Default TZ files location (windows) must be in HOME/.zoneinfo
+            let mut d = dirs::home_dir().unwrap();
+            d.push(".zoneinfo");
+            d
+        } else {
+            // ENV overrides default directory, or defaults to /usr/share/zoneinfo (Linux / MacOS)
+            let mut d = PathBuf::new();
+            d.push(env::var("TZFILES_DIR").unwrap_or(format!("/usr/share/zoneinfo/")));
+            d
+        };
         tz_files_root.push(tz);
         let mut f = File::open(tz_files_root)?;
         let mut buffer = Vec::new();

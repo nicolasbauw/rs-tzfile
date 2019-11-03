@@ -1,6 +1,6 @@
 [package]
 name = "tzfile"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Nicolas BAUW <nbauw@hotmail.com>"]
 edition = "2018"
 
@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 byteorder = "1"
 chrono = "0.4"
+dirs = "2.0.2"

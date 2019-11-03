@@ -39,7 +39,7 @@ fn main() {
 }
 ```
 
-It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). You can override the TZfiles default location with the TZFILES_DIR environment variable (ending by a /). That also works on Windows, for example:
+It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
 
 ```
 $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
