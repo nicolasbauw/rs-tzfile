@@ -143,3 +143,55 @@ impl Tzfile {
         Ok(buffer)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn read_file() {
+        assert_eq!(Tzfile::read("America/Phoenix").is_ok(), true);
+    }
+
+    #[test]
+    fn parse_header() {
+        let buffer = Tzfile::read("America/Phoenix").unwrap();
+        let amph = Tzfile { magic: 1415211366, version: 50, tzh_ttisgmtcnt: 3, tzh_ttisstdcnt: 3, tzh_leapcnt: 0, tzh_timecnt: 10, tzh_typecnt: 3, tzh_charcnt: 12 };
+        assert_eq!(Tzfile::parse_header(&buffer).unwrap(), amph);
+    }
+
+    #[test]
+    fn parse_indices() {
+        let buffer = Tzfile::read("America/Phoenix").unwrap();
+        let header = Tzfile::parse_header(&buffer).unwrap();
+        let amph: [u8; 10] = [0, 1, 0, 1, 2, 1, 2, 1, 0, 1];
+        assert_eq!(header.parse(&buffer).tzh_timecnt_indices, amph);
+    }
+
+    #[test]
+    fn parse_timedata() {
+        let buffer = Tzfile::read("America/Phoenix").unwrap();
+        let header = Tzfile::parse_header(&buffer).unwrap();
+        let amph: Vec<DateTime<Utc>> = vec![
+            Utc.ymd(1918, 3, 31).and_hms(9, 0, 0),
+            Utc.ymd(1918, 10, 27).and_hms(8, 0, 0),
+            Utc.ymd(1919, 3, 30).and_hms(9, 0, 0),
+            Utc.ymd(1919, 10, 26).and_hms(8, 0, 0),
+            Utc.ymd(1942, 2, 09).and_hms(9, 0, 0),
+            Utc.ymd(1944, 1, 1).and_hms(6, 1, 0),
+            Utc.ymd(1944, 4, 1).and_hms(7, 1, 0),
+            Utc.ymd(1944, 10, 1).and_hms(6, 1, 0),
+            Utc.ymd(1967, 4, 30).and_hms(9, 0, 0),
+            Utc.ymd(1967, 10, 29).and_hms(8, 0, 0)];
+        assert_eq!(header.parse(&buffer).tzh_timecnt_data, amph);
+    }
+
+    #[test]
+    fn parse_ttgmtoff() {
+        let buffer = Tzfile::read("America/Phoenix").unwrap();
+        let header = Tzfile::parse_header(&buffer).unwrap();
+        let amph: [isize; 3] = [-21600, -25200, -21600];
+        let c: [isize; 3] = [header.parse(&buffer).tzh_typecnt[0].tt_gmtoff, header.parse(&buffer).tzh_typecnt[1].tt_gmtoff, header.parse(&buffer).tzh_typecnt[2].tt_gmtoff];
+        assert_eq!(c, amph);
+    }
+}
