@@ -1,6 +1,6 @@
 # TZfile reading library
 
-This low-level library reads the binary TZfile and extracts the raw data, returning a RsTz struct representing the TZfile fields as described in the man page (http://man7.org/linux/man-pages/man5/tzfile.5.html)
+This low-level library parses the system timezone information files and returns a Tz struct representing the TZfile fields as described in the man page (http://man7.org/linux/man-pages/man5/tzfile.5.html)
 
 Only compatible with V1 (32 bits) format version for the moment.
 
@@ -20,14 +20,14 @@ Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT
 Insert this in cargo.toml:
 ```
 [dependencies]
-tzfile = { git = "https://github.com/nicolasbauw/rs-tzfile.git" }
+libtzfile = { git = "https://github.com/nicolasbauw/rs-tzfile.git" }
 ```
 
 A basic example:
 
 ```
-extern crate tzfile;
-use tzfile::*;
+extern crate libtzfile;
+use libtzfile::*;
 
 fn main() {
     // Opens TZfile
@@ -39,7 +39,7 @@ fn main() {
 }
 ```
 
-It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
+It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default expected location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
 
 ```
 $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run

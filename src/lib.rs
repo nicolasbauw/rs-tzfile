@@ -1,5 +1,31 @@
-/* This low-level library reads the binary tzfile and extracts
-the raw data, returning a RsTz struct */
+//! This low-level library reads the system timezone information files and returns a Tz struct representing the TZfile
+//! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
+//! Only compatible with V1 (32 bits) format version for the moment.
+//!
+//! For higher level parsing, see [my parsing library](https://github.com/nicolasbauw/rs-tzparse).
+//!
+//! Here is a example:
+//!```
+//! extern crate libtzfile;
+//! use libtzfile::*;
+//! 
+//! fn main() {
+//!     // Opens TZfile
+//!     let buffer = Tzfile::read("America/Phoenix").unwrap();
+//!     // Parses TZfile header
+//!     let header = Tzfile::parse_header(&buffer).unwrap();
+//!     // Parses file content
+//!     println!("{:?}", header.parse(&buffer));
+//! }
+//!```
+//!
+//! which outputs:
+//!
+//! Tz { tzh_timecnt_data: [1918-03-31T09:00:00Z, 1918-10-27T08:00:00Z, 1919-03-30T09:00:00Z, 1919-10-26T08:00:00Z, 1942-02-09T09:00:00Z, 1944-01-01T06:01:00Z, 1944-04-01T07:01:00Z, 1944-10-01T06:01:00Z, 1967-04-30T09:00:00Z, 1967-10-29T08:00:00Z], tzh_timecnt_indices: [0, 1, 0, 1, 2, 1, 2, 1, 0, 1], tzh_typecnt: [Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 0 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 2 }], tz_abbr: ["MDT", "MST", "MWT"] }
+//!
+//! It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default expected location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
+//!
+//! $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
 
 use dirs;
 use byteorder::{ByteOrder, BE};
@@ -35,7 +61,7 @@ impl From<Error> for std::io::Error {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct RsTz<'a> {
+pub struct Tz<'a> {
     pub tzh_timecnt_data: Vec<DateTime<Utc>>,
     pub tzh_timecnt_indices: &'a [u8],
     pub tzh_typecnt: Vec<Ttinfo>,
@@ -79,7 +105,7 @@ impl Tzfile {
         })
     }
 
-    pub fn parse<'a>(&self, buffer: &'a [u8]) -> RsTz<'a> {
+    pub fn parse<'a>(&self, buffer: &'a [u8]) -> Tz<'a> {
         // Calculates fields lengths and indexes (Version 1 format)
         let tzh_timecnt_len: usize = self.tzh_timecnt * 5;
         let tzh_typecnt_len: usize = self.tzh_typecnt * 6;
@@ -116,7 +142,7 @@ impl Tzfile {
         // Removes last empty string
         tz_abbr.pop().unwrap();
 
-        RsTz {
+        Tz {
             tzh_timecnt_data: tzh_timecnt_data,
             tzh_timecnt_indices: tzh_timecnt_indices,
             tzh_typecnt: tzh_typecnt,
@@ -126,7 +152,7 @@ impl Tzfile {
 
     pub fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
         let mut tz_files_root = if cfg!(windows) && env::var_os("TZFILES_DIR").is_none() {
-            // Default TZ files location (windows) must be in HOME/.zoneinfo
+            // Default TZ files location (windows) is HOME/.zoneinfo, can be overridden by ENV
             let mut d = dirs::home_dir().unwrap();
             d.push(".zoneinfo");
             d
