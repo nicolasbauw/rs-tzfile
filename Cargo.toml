@@ -6,6 +6,9 @@ description = "A low-level library to read timezone information files."
 edition = "2018"
 license = "GPL-3.0"
 repository = "https://github.com/nicolasbauw/rs-tzfile"
+exclude = [
+    "file_structure.txt"
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
