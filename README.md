@@ -18,6 +18,11 @@ Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT
 ## How to use:
 
 Insert this in cargo.toml:
+````
+[dependencies]
+libtzfile = "0.3.0"
+````
+Or if you want to use git:
 ```
 [dependencies]
 libtzfile = { git = "https://github.com/nicolasbauw/rs-tzfile.git" }
