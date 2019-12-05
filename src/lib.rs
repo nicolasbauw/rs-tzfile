@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn parse_header() {
         let buffer = Tzfile::read("America/Phoenix").unwrap();
-        let amph = Tzfile { magic: 1415211366, version: 50, tzh_ttisgmtcnt: 3, tzh_ttisstdcnt: 3, tzh_leapcnt: 0, tzh_timecnt: 10, tzh_typecnt: 3, tzh_charcnt: 12 };
+        let amph = Tzfile { magic: 1415211366, version: 50, tzh_ttisgmtcnt: 0, tzh_ttisstdcnt: 0, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16 };
         assert_eq!(Tzfile::parse_header(&buffer).unwrap(), amph);
     }
 
@@ -190,7 +190,7 @@ mod tests {
     fn parse_indices() {
         let buffer = Tzfile::read("America/Phoenix").unwrap();
         let header = Tzfile::parse_header(&buffer).unwrap();
-        let amph: [u8; 10] = [0, 1, 0, 1, 2, 1, 2, 1, 0, 1];
+        let amph: [u8; 11] = [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2];
         assert_eq!(header.parse(&buffer).tzh_timecnt_indices, amph);
     }
 
@@ -199,6 +199,7 @@ mod tests {
         let buffer = Tzfile::read("America/Phoenix").unwrap();
         let header = Tzfile::parse_header(&buffer).unwrap();
         let amph: Vec<DateTime<Utc>> = vec![
+            Utc.ymd(1901, 12, 13).and_hms(20, 45, 52),
             Utc.ymd(1918, 3, 31).and_hms(9, 0, 0),
             Utc.ymd(1918, 10, 27).and_hms(8, 0, 0),
             Utc.ymd(1919, 3, 30).and_hms(9, 0, 0),
@@ -216,7 +217,7 @@ mod tests {
     fn parse_ttgmtoff() {
         let buffer = Tzfile::read("America/Phoenix").unwrap();
         let header = Tzfile::parse_header(&buffer).unwrap();
-        let amph: [isize; 3] = [-21600, -25200, -21600];
+        let amph: [isize; 3] = [-26898, -21600, -25200];
         let c: [isize; 3] = [header.parse(&buffer).tzh_typecnt[0].tt_gmtoff, header.parse(&buffer).tzh_typecnt[1].tt_gmtoff, header.parse(&buffer).tzh_typecnt[2].tt_gmtoff];
         assert_eq!(c, amph);
     }
