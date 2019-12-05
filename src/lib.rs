@@ -20,9 +20,17 @@
 //!```
 //!
 //! which outputs:
-//!
-//! Tz { tzh_timecnt_data: [1918-03-31T09:00:00Z, 1918-10-27T08:00:00Z, 1919-03-30T09:00:00Z, 1919-10-26T08:00:00Z, 1942-02-09T09:00:00Z, 1944-01-01T06:01:00Z, 1944-04-01T07:01:00Z, 1944-10-01T06:01:00Z, 1967-04-30T09:00:00Z, 1967-10-29T08:00:00Z], tzh_timecnt_indices: [0, 1, 0, 1, 2, 1, 2, 1, 0, 1], tzh_typecnt: [Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 0 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 2 }], tz_abbr: ["MDT", "MST", "MWT"] }
-//!
+//!```text
+//! Tz { tzh_timecnt_data: [1918-03-31T09:00:00Z, 1918-10-27T08:00:00Z,
+//! 1919-03-30T09:00:00Z, 1919-10-26T08:00:00Z, 1942-02-09T09:00:00Z,
+//! 1944-01-01T06:01:00Z, 1944-04-01T07:01:00Z, 1944-10-01T06:01:00Z,
+//! 1967-04-30T09:00:00Z, 1967-10-29T08:00:00Z],
+//! tzh_timecnt_indices: [0, 1, 0, 1, 2, 1, 2, 1, 0, 1],
+//! tzh_typecnt: [Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 0 },
+//! Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 1 },
+//! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 2 }],
+//! tz_abbr: ["MDT", "MST", "MWT"] }
+//!```
 //! It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default expected location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
 //!
 //! $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
