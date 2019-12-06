@@ -2,20 +2,14 @@
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //! Only compatible with V1 (32 bits) format version for the moment.
 //!
-//! For higher level parsing, see [my parsing library](https://github.com/nicolasbauw/rs-tzparse).
+//! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
 //!
 //! Here is a example:
 //!```
 //! extern crate libtzfile;
-//! use libtzfile::*;
-//! 
+//!
 //! fn main() {
-//!     // Opens TZfile
-//!     let buffer = Tzfile::read("America/Phoenix").unwrap();
-//!     // Parses TZfile header
-//!     let header = Tzfile::parse_header(&buffer).unwrap();
-//!     // Parses file content
-//!     println!("{:?}", header.parse(&buffer));
+//!     println!("{:?}", libtzfile::parse("America/Phoenix"));
 //! }
 //!```
 //!
@@ -35,9 +29,9 @@
 //!
 //! $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
 
-use dirs;
 use byteorder::{ByteOrder, BE};
 use chrono::prelude::*;
+use dirs;
 use std::{env, error, fmt, fs::File, io::prelude::*, path::PathBuf, str::from_utf8};
 
 // TZif magic four bytes
@@ -68,120 +62,130 @@ impl From<Error> for std::io::Error {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Tz<'a> {
+#[derive(Debug)]
+pub struct Tz {
     pub tzh_timecnt_data: Vec<DateTime<Utc>>,
-    pub tzh_timecnt_indices: &'a [u8],
+    pub tzh_timecnt_indices: Vec<u8>,
     pub tzh_typecnt: Vec<Ttinfo>,
-    pub tz_abbr: Vec<&'a str>,
+    pub tz_abbr: Vec<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug)]
 pub struct Ttinfo {
     pub tt_gmtoff: isize,
     pub tt_isdst: u8,
     pub tt_abbrind: u8,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Tzfile {
+struct Header {
+    /* For future use
     magic: u32,
     version: u8,
     tzh_ttisgmtcnt: usize,
     tzh_ttisstdcnt: usize,
+    */
     tzh_leapcnt: usize,
     tzh_timecnt: usize,
     tzh_typecnt: usize,
     tzh_charcnt: usize,
 }
 
-impl Tzfile {
-    pub fn parse_header(buffer: &[u8]) -> Result<Tzfile, Error> {
-        let magic = BE::read_u32(&buffer[0x00..=0x03]);
-        if magic != MAGIC {
-            return Err(Error::InvalidMagic);
-        }
-        Ok(Tzfile {
-            magic: magic,
-            version: buffer[4],
-            tzh_ttisgmtcnt: BE::read_i32(&buffer[0x14..=0x17]) as usize,
-            tzh_ttisstdcnt: BE::read_i32(&buffer[0x18..=0x1B]) as usize,
-            tzh_leapcnt: BE::read_i32(&buffer[0x1C..=0x1F]) as usize,
-            tzh_timecnt: BE::read_i32(&buffer[0x20..=0x23]) as usize,
-            tzh_typecnt: BE::read_i32(&buffer[0x24..=0x27]) as usize,
-            tzh_charcnt: BE::read_i32(&buffer[0x28..=0x2b]) as usize,
+pub fn parse(tz: &str) -> Tz {
+    // Parses TZfile header
+    let header = parse_header(tz.to_string()).unwrap();
+    // Parses data
+    parse_data(header, tz.to_string())
+}
+
+fn parse_header(tz: String) -> Result<Header, Error> {
+    let buffer = read(&tz).unwrap();
+    let magic = BE::read_u32(&buffer[0x00..=0x03]);
+    if magic != MAGIC {
+        return Err(Error::InvalidMagic);
+    }
+    Ok(Header {
+        /* For future use
+        magic: magic,
+        version: buffer[4],
+        tzh_ttisgmtcnt: BE::read_i32(&buffer[0x14..=0x17]) as usize,
+        tzh_ttisstdcnt: BE::read_i32(&buffer[0x18..=0x1B]) as usize,
+        */
+        tzh_leapcnt: BE::read_i32(&buffer[0x1C..=0x1F]) as usize,
+        tzh_timecnt: BE::read_i32(&buffer[0x20..=0x23]) as usize,
+        tzh_typecnt: BE::read_i32(&buffer[0x24..=0x27]) as usize,
+        tzh_charcnt: BE::read_i32(&buffer[0x28..=0x2b]) as usize,
+    })
+}
+
+fn parse_data(header: Header, tz: String) -> Tz {
+    let buffer = read(&tz).unwrap();
+    // Calculates fields lengths and indexes (Version 1 format)
+    let tzh_timecnt_len: usize = header.tzh_timecnt * 5;
+    let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
+    let tzh_leapcnt_len: usize = header.tzh_leapcnt * 4;
+    let tzh_charcnt_len: usize = header.tzh_charcnt;
+    let tzh_timecnt_end: usize = V1_HEADER_END + tzh_timecnt_len;
+    let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;
+    let tzh_leapcnt_end: usize = tzh_typecnt_end + tzh_leapcnt_len;
+    let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
+
+    // Extracting data fields
+    let tzh_timecnt_data: Vec<DateTime<Utc>> = buffer
+        [V1_HEADER_END..V1_HEADER_END + header.tzh_timecnt * 4]
+        .chunks_exact(4)
+        .map(|tt| Utc.timestamp(BE::read_i32(tt).into(), 0))
+        .collect();
+
+    let tzh_timecnt_indices: &[u8] =
+        &buffer[V1_HEADER_END + header.tzh_timecnt * 4..tzh_timecnt_end];
+
+    let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
+        .chunks_exact(6)
+        .map(|tti| Ttinfo {
+            tt_gmtoff: BE::read_i32(&tti[0..4]) as isize,
+            tt_isdst: tti[4],
+            tt_abbrind: tti[5] / 4,
         })
-    }
+        .collect();
 
-    pub fn parse<'a>(&self, buffer: &'a [u8]) -> Tz<'a> {
-        // Calculates fields lengths and indexes (Version 1 format)
-        let tzh_timecnt_len: usize = self.tzh_timecnt * 5;
-        let tzh_typecnt_len: usize = self.tzh_typecnt * 6;
-        let tzh_leapcnt_len: usize = self.tzh_leapcnt * 4;
-        let tzh_charcnt_len: usize = self.tzh_charcnt;
-        let tzh_timecnt_end: usize = V1_HEADER_END + tzh_timecnt_len;
-        let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;
-        let tzh_leapcnt_end: usize = tzh_typecnt_end + tzh_leapcnt_len;
-        let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
+    let mut tz_abbr: Vec<String> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])
+        .unwrap()
+        .split("\u{0}")
+        .map(|st| st.to_string())
+        .collect();
+    // Removes last empty string
+    tz_abbr.pop().unwrap();
 
-        // Extracting data fields
-        let tzh_timecnt_data: Vec<DateTime<Utc>> = buffer
-            [V1_HEADER_END..V1_HEADER_END + self.tzh_timecnt * 4]
-            .chunks_exact(4)
-            .map(|tt| Utc.timestamp(BE::read_i32(tt).into(), 0))
-            .collect();
-
-        let tzh_timecnt_indices: &[u8] =
-            &buffer[V1_HEADER_END + self.tzh_timecnt * 4..tzh_timecnt_end];
-
-        let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
-            .chunks_exact(6)
-            .map(|tti| Ttinfo {
-                tt_gmtoff: BE::read_i32(&tti[0..4]) as isize,
-                tt_isdst: tti[4],
-                tt_abbrind: tti[5] / 4,
-            })
-            .collect();
-
-        let mut tz_abbr: Vec<&str> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])
-            .unwrap()
-            .split("\u{0}")
-            .collect();
-        // Removes last empty string
-        tz_abbr.pop().unwrap();
-
-        Tz {
-            tzh_timecnt_data: tzh_timecnt_data,
-            tzh_timecnt_indices: tzh_timecnt_indices,
-            tzh_typecnt: tzh_typecnt,
-            tz_abbr: tz_abbr,
-        }
-    }
-
-    pub fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
-        let mut tz_files_root = if cfg!(windows) && env::var_os("TZFILES_DIR").is_none() {
-            // Default TZ files location (windows) is HOME/.zoneinfo, can be overridden by ENV
-            let mut d = dirs::home_dir().unwrap();
-            d.push(".zoneinfo");
-            d
-        } else {
-            // ENV overrides default directory, or defaults to /usr/share/zoneinfo (Linux / MacOS)
-            let mut d = PathBuf::new();
-            d.push(env::var("TZFILES_DIR").unwrap_or(format!("/usr/share/zoneinfo/")));
-            d
-        };
-        tz_files_root.push(tz);
-        let mut f = File::open(tz_files_root)?;
-        let mut buffer = Vec::new();
-        f.read_to_end(&mut buffer)?;
-        Ok(buffer)
+    Tz {
+        tzh_timecnt_data: tzh_timecnt_data,
+        tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
+        tzh_typecnt: tzh_typecnt,
+        tz_abbr: tz_abbr,
     }
 }
 
-#[cfg(test)]
+fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
+    let mut tz_files_root = if cfg!(windows) && env::var_os("TZFILES_DIR").is_none() {
+        // Default TZ files location (windows) is HOME/.zoneinfo, can be overridden by ENV
+        let mut d = dirs::home_dir().unwrap();
+        d.push(".zoneinfo");
+        d
+    } else {
+        // ENV overrides default directory, or defaults to /usr/share/zoneinfo (Linux / MacOS)
+        let mut d = PathBuf::new();
+        d.push(env::var("TZFILES_DIR").unwrap_or(format!("/usr/share/zoneinfo/")));
+        d
+    };
+    tz_files_root.push(tz);
+    let mut f = File::open(tz_files_root)?;
+    let mut buffer = Vec::new();
+    f.read_to_end(&mut buffer)?;
+    Ok(buffer)
+}
+
+/*#[cfg(test)]
 mod tests {
     use super::*;
-    
     #[test]
     fn read_file() {
         assert_eq!(Tzfile::read("America/Phoenix").is_ok(), true);
@@ -229,4 +233,4 @@ mod tests {
         let c: [isize; 3] = [header.parse(&buffer).tzh_typecnt[0].tt_gmtoff, header.parse(&buffer).tzh_typecnt[1].tt_gmtoff, header.parse(&buffer).tzh_typecnt[2].tt_gmtoff];
         assert_eq!(c, amph);
     }
-}
+}*/
