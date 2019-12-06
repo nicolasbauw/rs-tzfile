@@ -40,24 +40,33 @@ static MAGIC: u32 = 0x545A6966;
 static V1_HEADER_END: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub enum Error {
+pub enum TzError {
+    // Invalied timezone
+    InvalidTimezone,
     // Invalid file format.
     InvalidMagic,
 }
 
-impl fmt::Display for Error {
+impl fmt::Display for TzError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("tzfile error: ")?;
         f.write_str(match self {
-            Error::InvalidMagic => "invalid TZfile",
+            TzError::InvalidTimezone => "invalid timezone",
+            TzError::InvalidMagic => "invalid TZfile",
         })
     }
 }
 
-impl error::Error for Error {}
+impl From<std::io::Error> for TzError {
+    fn from(_e: std::io::Error) -> TzError {
+        TzError::InvalidTimezone
+    }
+}
 
-impl From<Error> for std::io::Error {
-    fn from(e: Error) -> std::io::Error {
+impl error::Error for TzError {}
+
+impl From<TzError> for std::io::Error {
+    fn from(e: TzError) -> std::io::Error {
         std::io::Error::new(std::io::ErrorKind::Other, e)
     }
 }
@@ -90,18 +99,18 @@ struct Header {
     tzh_charcnt: usize,
 }
 
-pub fn parse(tz: &str) -> Result<Tz, Error> {
+pub fn parse(tz: &str) -> Result<Tz, TzError> {
     // Parses TZfile header
     let header = parse_header(tz)?;
     // Parses data
-    Ok(parse_data(header, tz))
+    parse_data(header, tz)
 }
 
-fn parse_header(tz: &str) -> Result<Header, Error> {
-    let buffer = read(tz).unwrap();
+fn parse_header(tz: &str) -> Result<Header, TzError> {
+    let buffer = read(tz)?;
     let magic = BE::read_u32(&buffer[0x00..=0x03]);
     if magic != MAGIC {
-        return Err(Error::InvalidMagic);
+        return Err(TzError::InvalidMagic);
     }
     Ok(Header {
         /* For future use
@@ -117,8 +126,8 @@ fn parse_header(tz: &str) -> Result<Header, Error> {
     })
 }
 
-fn parse_data(header: Header, tz: &str) -> Tz {
-    let buffer = read(tz).unwrap();
+fn parse_data(header: Header, tz: &str) -> Result<Tz, TzError> {
+    let buffer = read(tz)?;
     // Calculates fields lengths and indexes (Version 1 format)
     let tzh_timecnt_len: usize = header.tzh_timecnt * 5;
     let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
@@ -156,12 +165,12 @@ fn parse_data(header: Header, tz: &str) -> Tz {
     // Removes last empty string
     tz_abbr.pop().unwrap();
 
-    Tz {
+    Ok(Tz {
         tzh_timecnt_data: tzh_timecnt_data,
         tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
         tzh_typecnt: tzh_typecnt,
         tz_abbr: tz_abbr,
-    }
+    })
 }
 
 fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
