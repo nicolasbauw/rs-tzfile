@@ -9,7 +9,7 @@
 //! extern crate libtzfile;
 //!
 //! fn main() {
-//!     println!("{:?}", libtzfile::parse("America/Phoenix").expect("Timezone not found");
+//!     println!("{:?}", libtzfile::parse("America/Phoenix").expect("Timezone not found"));
 //! }
 //!```
 //!
@@ -95,6 +95,7 @@ pub struct Ttinfo {
     pub tt_abbrind: u8,
 }
 
+#[derive(Debug, PartialEq)]
 struct Header {
     /* For future use
     magic: u32,
@@ -200,33 +201,28 @@ fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
     Ok(buffer)
 }
 
-/*#[cfg(test)]
+#[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn read_file() {
-        assert_eq!(Tzfile::read("America/Phoenix").is_ok(), true);
+        assert_eq!(read("America/Phoenix").is_ok(), true);
     }
 
     #[test]
-    fn parse_header() {
-        let buffer = Tzfile::read("America/Phoenix").unwrap();
-        let amph = Tzfile { magic: 1415211366, version: 50, tzh_ttisgmtcnt: 0, tzh_ttisstdcnt: 0, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16 };
-        assert_eq!(Tzfile::parse_header(&buffer).unwrap(), amph);
+    fn parse_hdr() {
+        let amph = Header { tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16 };
+        assert_eq!(parse_header("America/Phoenix").unwrap(), amph);
     }
 
     #[test]
     fn parse_indices() {
-        let buffer = Tzfile::read("America/Phoenix").unwrap();
-        let header = Tzfile::parse_header(&buffer).unwrap();
         let amph: [u8; 11] = [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2];
-        assert_eq!(header.parse(&buffer).tzh_timecnt_indices, amph);
+        assert_eq!(parse("America/Phoenix").unwrap().tzh_timecnt_indices, amph);
     }
 
     #[test]
     fn parse_timedata() {
-        let buffer = Tzfile::read("America/Phoenix").unwrap();
-        let header = Tzfile::parse_header(&buffer).unwrap();
         let amph: Vec<DateTime<Utc>> = vec![
             Utc.ymd(1901, 12, 13).and_hms(20, 45, 52),
             Utc.ymd(1918, 3, 31).and_hms(9, 0, 0),
@@ -239,15 +235,13 @@ mod tests {
             Utc.ymd(1944, 10, 1).and_hms(6, 1, 0),
             Utc.ymd(1967, 4, 30).and_hms(9, 0, 0),
             Utc.ymd(1967, 10, 29).and_hms(8, 0, 0)];
-        assert_eq!(header.parse(&buffer).tzh_timecnt_data, amph);
+        assert_eq!(parse("America/Phoenix").unwrap().tzh_timecnt_data, amph);
     }
 
     #[test]
     fn parse_ttgmtoff() {
-        let buffer = Tzfile::read("America/Phoenix").unwrap();
-        let header = Tzfile::parse_header(&buffer).unwrap();
         let amph: [isize; 3] = [-26898, -21600, -25200];
-        let c: [isize; 3] = [header.parse(&buffer).tzh_typecnt[0].tt_gmtoff, header.parse(&buffer).tzh_typecnt[1].tt_gmtoff, header.parse(&buffer).tzh_typecnt[2].tt_gmtoff];
+        let c: [isize; 3] = [parse("America/Phoenix").unwrap().tzh_typecnt[0].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[1].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[2].tt_gmtoff];
         assert_eq!(c, amph);
     }
-}*/
+}
