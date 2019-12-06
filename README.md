@@ -22,27 +22,16 @@ Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT
 Insert this in cargo.toml:
 ````
 [dependencies]
-libtzfile = "0.3.0"
+libtzfile = "0.4.0"
 ````
-Or if you want to use git:
-```
-[dependencies]
-libtzfile = { git = "https://github.com/nicolasbauw/rs-tzfile.git" }
-```
 
 A basic example:
 
 ```
 extern crate libtzfile;
-use libtzfile::*;
 
 fn main() {
-    // Opens TZfile
-    let buffer = Tzfile::read("America/Phoenix").unwrap();
-    // Parses TZfile header
-    let header = Tzfile::parse_header(&buffer).unwrap();
-    // Parses file content
-    println!("{:?}", header.parse(&buffer));
+    println!("{:?}", libtzfile::parse("America/Phoenix").expect("Timezone not found"));
 }
 ```
 
