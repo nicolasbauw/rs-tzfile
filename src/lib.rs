@@ -28,6 +28,8 @@
 //! It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default expected location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
 //!
 //! $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
+//! 
+//! The tests (cargo test) are written to match [2019c version of timezone database](https://www.iana.org/time-zones).
 
 use byteorder::{ByteOrder, BE};
 use chrono::prelude::*;
