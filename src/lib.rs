@@ -9,7 +9,7 @@
 //! extern crate libtzfile;
 //!
 //! fn main() {
-//!     println!("{:?}", libtzfile::parse("America/Phoenix"));
+//!     println!("{:?}", libtzfile::parse("America/Phoenix").expect("Timezone not found");
 //! }
 //!```
 //!
@@ -90,15 +90,15 @@ struct Header {
     tzh_charcnt: usize,
 }
 
-pub fn parse(tz: &str) -> Tz {
+pub fn parse(tz: &str) -> Result<Tz, Error> {
     // Parses TZfile header
-    let header = parse_header(tz.to_string()).unwrap();
+    let header = parse_header(tz)?;
     // Parses data
-    parse_data(header, tz.to_string())
+    Ok(parse_data(header, tz))
 }
 
-fn parse_header(tz: String) -> Result<Header, Error> {
-    let buffer = read(&tz).unwrap();
+fn parse_header(tz: &str) -> Result<Header, Error> {
+    let buffer = read(tz).unwrap();
     let magic = BE::read_u32(&buffer[0x00..=0x03]);
     if magic != MAGIC {
         return Err(Error::InvalidMagic);
@@ -117,8 +117,8 @@ fn parse_header(tz: String) -> Result<Header, Error> {
     })
 }
 
-fn parse_data(header: Header, tz: String) -> Tz {
-    let buffer = read(&tz).unwrap();
+fn parse_data(header: Header, tz: &str) -> Tz {
+    let buffer = read(tz).unwrap();
     // Calculates fields lengths and indexes (Version 1 format)
     let tzh_timecnt_len: usize = header.tzh_timecnt * 5;
     let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
