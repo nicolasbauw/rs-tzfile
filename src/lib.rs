@@ -41,10 +41,12 @@ static V1_HEADER_END: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TzError {
-    // Invalied timezone
+    // Invalid timezone
     InvalidTimezone,
     // Invalid file format.
     InvalidMagic,
+    // Bad utf8 string
+    BadUtf8String,
 }
 
 impl fmt::Display for TzError {
@@ -53,6 +55,7 @@ impl fmt::Display for TzError {
         f.write_str(match self {
             TzError::InvalidTimezone => "invalid timezone",
             TzError::InvalidMagic => "invalid TZfile",
+            TzError::BadUtf8String => "bad utf8 string"
         })
     }
 }
@@ -60,6 +63,12 @@ impl fmt::Display for TzError {
 impl From<std::io::Error> for TzError {
     fn from(_e: std::io::Error) -> TzError {
         TzError::InvalidTimezone
+    }
+}
+
+impl From<std::str::Utf8Error> for TzError {
+    fn from(_e: std::str::Utf8Error) -> TzError {
+        TzError::BadUtf8String
     }
 }
 
@@ -157,8 +166,7 @@ fn parse_data(header: Header, tz: &str) -> Result<Tz, TzError> {
         })
         .collect();
 
-    let mut tz_abbr: Vec<String> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])
-        .unwrap()
+    let mut tz_abbr: Vec<String> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])?
         .split("\u{0}")
         .map(|st| st.to_string())
         .collect();
@@ -176,7 +184,7 @@ fn parse_data(header: Header, tz: &str) -> Result<Tz, TzError> {
 fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
     let mut tz_files_root = if cfg!(windows) && env::var_os("TZFILES_DIR").is_none() {
         // Default TZ files location (windows) is HOME/.zoneinfo, can be overridden by ENV
-        let mut d = dirs::home_dir().unwrap();
+        let mut d = dirs::home_dir().unwrap_or(PathBuf::from("C:\\Users"));
         d.push(".zoneinfo");
         d
     } else {
