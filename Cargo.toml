@@ -1,9 +1,9 @@
 [package]
 name = "libtzfile"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Nicolas BAUW <nbauw@hotmail.com>"]
 description = "A low-level library to read timezone information files."
-keywords = ["timezone", "tzfiles", "TZIF"]
+keywords = ["timezone", "tzfiles", "TZIF", "timestamp"]
 categories = ["date-and-time", "parsing"]
 edition = "2018"
 license = "GPL-3.0"
