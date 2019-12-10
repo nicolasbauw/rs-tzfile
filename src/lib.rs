@@ -32,7 +32,7 @@
 //! The tests (cargo test) are written to match [2019c version of timezone database](https://www.iana.org/time-zones).
 
 use byteorder::{ByteOrder, BE};
-#[cfg(not(feature = "timestamp"))]
+#[cfg(feature = "with-chrono")]
 use chrono::prelude::*;
 use dirs;
 use std::{env, error, fmt, fs::File, io::prelude::*, path::PathBuf, str::from_utf8};
@@ -83,7 +83,7 @@ impl From<TzError> for std::io::Error {
     }
 }
 
-#[cfg(feature = "timestamp")]
+#[cfg(not(feature = "with-chrono"))]
 #[derive(Debug)]
 pub struct Tz {
     pub tzh_timecnt_data: Vec<i32>,
@@ -92,7 +92,7 @@ pub struct Tz {
     pub tz_abbr: Vec<String>,
 }
 
-#[cfg(not(feature = "timestamp"))]
+#[cfg(feature = "with-chrono")]
 #[derive(Debug)]
 pub struct Tz {
     pub tzh_timecnt_data: Vec<DateTime<Utc>>,
@@ -162,14 +162,14 @@ fn parse_data(header: Header, tz: &str) -> Result<Tz, TzError> {
     let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
 
     // Extracting data fields
-    #[cfg(feature = "timestamp")]
+    #[cfg(not(feature = "with-chrono"))]
     let tzh_timecnt_data: Vec<i32> = buffer
         [V1_HEADER_END..V1_HEADER_END + header.tzh_timecnt * 4]
         .chunks_exact(4)
         .map(|tt| BE::read_i32(tt))
         .collect();
 
-    #[cfg(not(feature = "timestamp"))]
+    #[cfg(feature = "with-chrono")]
     let tzh_timecnt_data: Vec<DateTime<Utc>> = buffer
         [V1_HEADER_END..V1_HEADER_END + header.tzh_timecnt * 4]
         .chunks_exact(4)
@@ -242,6 +242,7 @@ mod tests {
         assert_eq!(parse("America/Phoenix").unwrap().tzh_timecnt_indices, amph);
     }
 
+    #[cfg(feature = "with-chrono")]
     #[test]
     fn parse_timedata() {
         let amph: Vec<DateTime<Utc>> = vec![
