@@ -3,8 +3,15 @@
 //! Only compatible with V1 (32 bits) format version for the moment.
 //!
 //! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
-//!
-//! Here is a example:
+//! 
+//! To keep the low-level aspect, since 0.5.0 chrono is an optional feature which is not enabled by default, so tzh_timecnt_data is now the raw `i32` timestamp.
+//! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can either use the version 0.4.0 of libtzfile, or add this in Cargo.toml:
+//! ```text
+//! [dependencies.libtzfile]
+//! version = "0.5.0"
+//! features = ["with-chrono"]
+//! ```
+//! Here is an example:
 //!```
 //! extern crate libtzfile;
 //!
@@ -13,7 +20,7 @@
 //! }
 //!```
 //!
-//! which outputs:
+//! which outputs (with chrono enabled):
 //!```text
 //! Tz { tzh_timecnt_data: [1918-03-31T09:00:00Z, 1918-10-27T08:00:00Z,
 //! 1919-03-30T09:00:00Z, 1919-10-26T08:00:00Z, 1942-02-09T09:00:00Z,
@@ -25,6 +32,12 @@
 //! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 2 }],
 //! tz_abbr: ["MDT", "MST", "MWT"] }
 //!```
+//! 
+//! By default, with chrono disabled, tzh_timecnt_data will be like:
+//! ```text
+//! tzh_timecnt_data: [9EA63A90, 9FBB0780, A0861C90, A19AE980, CB890C90, CF17DF1C, CF8FE5AC,
+//! D0811A1C, FAF87510, FBE85800]
+//! ```
 //! It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default expected location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
 //!
 //! $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
@@ -246,7 +259,7 @@ mod tests {
     #[test]
     fn parse_timedata() {
         let amph: Vec<DateTime<Utc>> = vec![
-            Utc.ymd(1901, 12, 13).and_hms(20, 45, 52),
+            Utc.ymd(1901, 12, 13).and_hms(20, 45, 52), // 0x80000000
             Utc.ymd(1918, 3, 31).and_hms(9, 0, 0),
             Utc.ymd(1918, 10, 27).and_hms(8, 0, 0),
             Utc.ymd(1919, 3, 30).and_hms(9, 0, 0),
