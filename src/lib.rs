@@ -4,7 +4,7 @@
 //!
 //! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
 //! 
-//! To keep the low-level aspect, since 0.5.0 chrono is an optional feature which is not enabled by default, so tzh_timecnt_data is now the raw `i32` timestamp.
+//! To keep the low-level aspect of the library, since 0.5.0 chrono is an optional feature which is not enabled by default, so tzh_timecnt_data is now the raw `i32` timestamp.
 //! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can either use the version 0.4.0 of libtzfile, or add this in Cargo.toml:
 //! ```text
 //! [dependencies.libtzfile]
