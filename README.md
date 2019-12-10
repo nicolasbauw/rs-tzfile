@@ -4,9 +4,17 @@
 
 This low-level library parses the system timezone information files and returns a Tz struct representing the TZfile fields as described in the man page (http://man7.org/linux/man-pages/man5/tzfile.5.html)
 
+To keep the low-level aspect, since 0.5.0 chrono is an optional feature which is not enabled by default, so tzh_timecnt_data is now the raw `i32` timestamp.
+For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can either use the version 0.4.0 of libtzfile, or add this in Cargo.toml:
+```
+[dependencies.libtzfile]
+version = "0.5.0"
+features = ["with-chrono"]
+```
+
 Only compatible with V1 (32 bits) format version for the moment.
 
-Here an output sample without a lot of data for readability:
+Here is an output sample with chrono enabled:
 
 ```
 { tzh_timecnt_data: [1901-12-13T20:45:52Z, 1918-03-31T09:00:00Z, 1918-10-27T08:00:00Z,
@@ -22,7 +30,7 @@ Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT
 Insert this in cargo.toml:
 ````
 [dependencies]
-libtzfile = "0.4.0"
+libtzfile = "0.5.0"
 ````
 
 A basic example:
