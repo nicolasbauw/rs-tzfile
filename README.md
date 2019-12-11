@@ -8,7 +8,7 @@ To keep the low-level aspect, since 0.5.0 chrono is an optional feature which is
 For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can either use the version 0.4.0 of libtzfile, or add this in Cargo.toml:
 ```
 [dependencies.libtzfile]
-version = "0.5.0"
+version = "0.5.1"
 features = ["with-chrono"]
 ```
 
@@ -30,7 +30,7 @@ Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT
 Insert this in cargo.toml:
 ````
 [dependencies]
-libtzfile = "0.5.0"
+libtzfile = "0.5.1"
 ````
 
 A basic example:

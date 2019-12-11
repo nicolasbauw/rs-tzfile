@@ -8,7 +8,7 @@
 //! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can either use the version 0.4.0 of libtzfile, or add this in Cargo.toml:
 //! ```text
 //! [dependencies.libtzfile]
-//! version = "0.5.0"
+//! version = "0.5.1"
 //! features = ["with-chrono"]
 //! ```
 //! Here is an example:
@@ -167,7 +167,7 @@ fn parse_data(header: Header, tz: &str) -> Result<Tz, TzError> {
     // Calculates fields lengths and indexes (Version 1 format)
     let tzh_timecnt_len: usize = header.tzh_timecnt * 5;
     let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
-    let tzh_leapcnt_len: usize = header.tzh_leapcnt * 4;
+    let tzh_leapcnt_len: usize = header.tzh_leapcnt * 8;
     let tzh_charcnt_len: usize = header.tzh_charcnt;
     let tzh_timecnt_end: usize = V1_HEADER_END + tzh_timecnt_len;
     let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;

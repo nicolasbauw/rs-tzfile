@@ -1,6 +1,6 @@
 [package]
 name = "libtzfile"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Nicolas BAUW <nbauw@hotmail.com>"]
 description = "A low-level library to read timezone information files."
 keywords = ["timezone", "tzfiles", "TZIF", "timestamp"]

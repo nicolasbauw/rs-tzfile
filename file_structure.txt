@@ -5,7 +5,7 @@ tzh_timecnt * 1
 
 tzh_typecnt * 6
 
-tzh_leapcnt *   | 4
-                | 6
+tzh_leapcnt *   | 2 * 4
+                | 2 * 8
 
 tzh_charcnt * 1
