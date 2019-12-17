@@ -2,7 +2,7 @@
 name = "libtzfile"
 version = "1.0.0"
 authors = ["Nicolas BAUW <nbauw@hotmail.com>"]
-description = "A low-level library to read timezone information files as a Rust struct."
+description = "A low-level library to read timezone information files and return a Rust struct representing the TZfile fields as described in the man page (http://man7.org/linux/man-pages/man5/tzfile.5.html)."
 keywords = ["timezone", "tzfiles", "TZIF", "timestamp"]
 categories = ["date-and-time", "parsing"]
 edition = "2018"
