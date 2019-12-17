@@ -22,21 +22,20 @@
 //!
 //! which outputs (with chrono enabled):
 //!```text
-//! Tz { tzh_timecnt_data: [1918-03-31T09:00:00Z, 1918-10-27T08:00:00Z,
-//! 1919-03-30T09:00:00Z, 1919-10-26T08:00:00Z, 1942-02-09T09:00:00Z,
-//! 1944-01-01T06:01:00Z, 1944-04-01T07:01:00Z, 1944-10-01T06:01:00Z,
-//! 1967-04-30T09:00:00Z, 1967-10-29T08:00:00Z],
-//! tzh_timecnt_indices: [0, 1, 0, 1, 2, 1, 2, 1, 0, 1],
-//! tzh_typecnt: [Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 0 },
-//! Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 1 },
-//! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 2 }],
-//! tz_abbr: ["MDT", "MST", "MWT"] }
+//! Tz { tzh_timecnt_data: [1883-11-18T19:00:00Z, 1918-03-31T09:00:00Z, 1918-10-27T08:00:00Z,
+//! 1919-03-30T09:00:00Z, 1919-10-26T08:00:00Z, 1942-02-09T09:00:00Z, 1944-01-01T06:01:00Z,
+//! 1944-04-01T07:01:00Z, 1944-10-01T06:01:00Z, 1967-04-30T09:00:00Z, 1967-10-29T08:00:00Z],
+//! tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2],
+//! tzh_typecnt: [Ttinfo { tt_gmtoff: -26898, tt_isdst: 0, tt_abbrind: 0 },
+//! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 2 },
+//! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 //!```
 //! 
 //! By default, with chrono disabled, tzh_timecnt_data will be like:
 //! ```text
-//! tzh_timecnt_data: [9EA63A90, 9FBB0780, A0861C90, A19AE980, CB890C90, CF17DF1C, CF8FE5AC,
-//! D0811A1C, FAF87510, FBE85800]
+//! tzh_timecnt_data: [FFFFFFFF5E040CB0, FFFFFFFF9EA63A90, FFFFFFFF9FBB0780,
+//! FFFFFFFFA0861C90, FFFFFFFFA19AE980, FFFFFFFFCB890C90, FFFFFFFFCF17DF1C,
+//! FFFFFFFFCF8FE5AC, FFFFFFFFD0811A1C, FFFFFFFFFAF87510, FFFFFFFFFBE85800]
 //! ```
 //! It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo). On Windows, default expected location is HOME/.zoneinfo. You can override the TZfiles default location with the TZFILES_DIR environment variable. Example for Windows:
 //!
@@ -138,7 +137,6 @@ struct Header {
 pub fn parse(tz: &str) -> Result<Tz, TzError> {
     // Parses TZfile header
     let header = parse_header(tz)?;
-    println!("{:?}",header);
     // Parses data
     parse_data(header, tz)
 }
@@ -292,8 +290,8 @@ mod tests {
 
     #[test]
     fn parse_ttgmtoff() {
-        let amph: [isize; 3] = [-26898, -21600, -25200];
-        let c: [isize; 3] = [parse("America/Phoenix").unwrap().tzh_typecnt[0].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[1].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[2].tt_gmtoff];
+        let amph: [isize; 4] = [-26898, -21600, -25200, -21600];
+        let c: [isize; 4] = [parse("America/Phoenix").unwrap().tzh_typecnt[0].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[1].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[2].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[3].tt_gmtoff];
         assert_eq!(c, amph);
     }
 }
