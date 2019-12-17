@@ -138,6 +138,7 @@ struct Header {
 pub fn parse(tz: &str) -> Result<Tz, TzError> {
     // Parses TZfile header
     let header = parse_header(tz)?;
+    println!("{:?}",header);
     // Parses data
     parse_data(header, tz)
 }
@@ -250,7 +251,7 @@ fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
     Ok(buffer)
 }
 
-/*#[cfg(test)]
+#[cfg(test)]
 mod tests {
     use super::*;
     #[test]
@@ -260,7 +261,7 @@ mod tests {
 
     #[test]
     fn parse_hdr() {
-        let amph = Header { tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16 };
+        let amph = Header { tzh_ttisgmtcnt: 0, tzh_ttisstdcnt: 0, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16, v2_header_start: 139 };
         assert_eq!(parse_header("America/Phoenix").unwrap(), amph);
     }
 
@@ -270,21 +271,22 @@ mod tests {
         assert_eq!(parse("America/Phoenix").unwrap().tzh_timecnt_indices, amph);
     }
 
-    #[cfg(feature = "with-chrono")]
+    #[cfg(not(feature = "with-chrono"))]
     #[test]
     fn parse_timedata() {
-        let amph: Vec<DateTime<Utc>> = vec![
-            Utc.ymd(1901, 12, 13).and_hms(20, 45, 52), // 0x80000000
-            Utc.ymd(1918, 3, 31).and_hms(9, 0, 0),
-            Utc.ymd(1918, 10, 27).and_hms(8, 0, 0),
-            Utc.ymd(1919, 3, 30).and_hms(9, 0, 0),
-            Utc.ymd(1919, 10, 26).and_hms(8, 0, 0),
-            Utc.ymd(1942, 2, 09).and_hms(9, 0, 0),
-            Utc.ymd(1944, 1, 1).and_hms(6, 1, 0),
-            Utc.ymd(1944, 4, 1).and_hms(7, 1, 0),
-            Utc.ymd(1944, 10, 1).and_hms(6, 1, 0),
-            Utc.ymd(1967, 4, 30).and_hms(9, 0, 0),
-            Utc.ymd(1967, 10, 29).and_hms(8, 0, 0)];
+        let amph: Vec<i64> = vec![
+                -2717643600,
+                -1633273200,
+                -1615132800,
+                -1601823600,
+                -1583683200,
+                -880210800,
+                -820519140,
+                -812653140,
+                -796845540,
+                -84380400,
+                -68659200
+            ];
         assert_eq!(parse("America/Phoenix").unwrap().tzh_timecnt_data, amph);
     }
 
@@ -294,4 +296,4 @@ mod tests {
         let c: [isize; 3] = [parse("America/Phoenix").unwrap().tzh_typecnt[0].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[1].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[2].tt_gmtoff];
         assert_eq!(c, amph);
     }
-}*/
+}
