@@ -1,6 +1,6 @@
 //! This low-level library reads the system timezone information files and returns a Tz struct representing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
-//! Parses V2 (64 bits) format version since 1.0.0.
+//! Parses V2 (64 bits) format version since 1.0.0, so be aware that the tzh_timecnt_data field is now a `Vec<i64>`.
 //!
 //! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
 //! 
