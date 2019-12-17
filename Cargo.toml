@@ -1,8 +1,8 @@
 [package]
 name = "libtzfile"
-version = "0.5.1"
+version = "1.0.0"
 authors = ["Nicolas BAUW <nbauw@hotmail.com>"]
-description = "A low-level library to read timezone information files."
+description = "A low-level library to read timezone information files as a Rust struct."
 keywords = ["timezone", "tzfiles", "TZIF", "timestamp"]
 categories = ["date-and-time", "parsing"]
 edition = "2018"
