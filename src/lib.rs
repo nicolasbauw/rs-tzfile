@@ -1,14 +1,14 @@
 //! This low-level library reads the system timezone information files and returns a Tz struct representing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
-//! Only compatible with V1 (32 bits) format version for the moment.
+//! Parses V2 (64 bits) format version since 1.0.0.
 //!
 //! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
 //! 
-//! To keep the low-level aspect of the library, since 0.5.0 chrono is an optional feature which is not enabled by default, so tzh_timecnt_data is now the raw `i32` timestamp.
-//! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can either use the version 0.4.0 of libtzfile, or add this in Cargo.toml:
+//! To keep the low-level aspect of the library, since 0.5.0 chrono is an optional feature which is not enabled by default, so tzh_timecnt_data is now the raw `i64` timestamp.
+//! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 //! ```text
 //! [dependencies.libtzfile]
-//! version = "0.5.1"
+//! version = "1.0.0"
 //! features = ["with-chrono"]
 //! ```
 //! Here is an example:
@@ -16,7 +16,7 @@
 //! extern crate libtzfile;
 //!
 //! fn main() {
-//!     println!("{:?}", libtzfile::parse("America/Phoenix").expect("Timezone not found"));
+//!     println!("{:?}", libtzfile::parse("America/Phoenix").unwrap());
 //! }
 //!```
 //!
@@ -52,7 +52,7 @@ use std::{env, error, fmt, fs::File, io::prelude::*, path::PathBuf, str::from_ut
 
 // TZif magic four bytes
 static MAGIC: u32 = 0x545A6966;
-// End of first (V1) header
+// Header length
 static HEADER_LEN: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -63,6 +63,8 @@ pub enum TzError {
     InvalidMagic,
     // Bad utf8 string
     BadUtf8String,
+    // Only V2 format is supported
+    UnsupportedFormat
 }
 
 impl fmt::Display for TzError {
@@ -71,7 +73,8 @@ impl fmt::Display for TzError {
         f.write_str(match self {
             TzError::InvalidTimezone => "invalid timezone",
             TzError::InvalidMagic => "invalid TZfile",
-            TzError::BadUtf8String => "bad utf8 string"
+            TzError::BadUtf8String => "bad utf8 string",
+            TzError::UnsupportedFormat => "only V2 format is supported"
         })
     }
 }
@@ -144,7 +147,10 @@ fn parse_header(tz: &str) -> Result<Header, TzError> {
     let magic = BE::read_u32(&buffer[0x00..=0x03]);
     if magic != MAGIC {
         return Err(TzError::InvalidMagic)
-    }     
+    }
+    if buffer[4] != 50 {
+        return Err(TzError::UnsupportedFormat)
+    }
     let tzh_ttisgmtcnt = BE::read_i32(&buffer[0x14..=0x17]) as usize;
     let tzh_ttisstdcnt = BE::read_i32(&buffer[0x18..=0x1B]) as usize;
     let tzh_leapcnt = BE::read_i32(&buffer[0x1C..=0x1F]) as usize;
@@ -173,7 +179,7 @@ fn parse_header(tz: &str) -> Result<Header, TzError> {
 
 fn parse_data(header: Header, tz: &str) -> Result<Tz, TzError> {
     let buffer = read(tz)?;
-    // Calculates fields lengths and indexes (Version 1 format)
+    // Calculates fields lengths and indexes (Version 2 format)
     let tzh_timecnt_len: usize = header.tzh_timecnt * 9;
     let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
     let tzh_leapcnt_len: usize = header.tzh_leapcnt * 12;
