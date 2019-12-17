@@ -1,6 +1,8 @@
 # libtzfile
 
 [![Current Crates.io Version](https://img.shields.io/crates/v/libtzfile.svg)](https://crates.io/crates/libtzfile)
+[![Downloads badge](https://img.shields.io/crates/d/libtzfile.svg)](https://crates.io/crates/libtzfile)
+
 
 This low-level library reads the system timezone information files and returns a Tz struct representing the TZfile
 fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
