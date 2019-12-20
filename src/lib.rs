@@ -135,14 +135,15 @@ struct Header {
 }
 
 pub fn parse(tz: &str) -> Result<Tz, TzError> {
+    // Reads TZfile and places its content on the heap
+    let buf = read(tz)?;
     // Parses TZfile header
-    let header = parse_header(tz)?;
+    let header = parse_header(&buf)?;
     // Parses data
-    parse_data(header, tz)
+    parse_data(&buf, header)
 }
 
-fn parse_header(tz: &str) -> Result<Header, TzError> {
-    let buffer = read(tz)?;
+fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
     let magic = BE::read_u32(&buffer[0x00..=0x03]);
     if magic != MAGIC {
         return Err(TzError::InvalidMagic)
@@ -176,8 +177,7 @@ fn parse_header(tz: &str) -> Result<Header, TzError> {
     })
 }
 
-fn parse_data(header: Header, tz: &str) -> Result<Tz, TzError> {
-    let buffer = read(tz)?;
+fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
     // Calculates fields lengths and indexes (Version 2 format)
     let tzh_timecnt_len: usize = header.tzh_timecnt * 9;
     let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
@@ -259,8 +259,9 @@ mod tests {
 
     #[test]
     fn parse_hdr() {
+        let buf = read("America/Phoenix").unwrap();
         let amph = Header { tzh_ttisgmtcnt: 0, tzh_ttisstdcnt: 0, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16, v2_header_start: 139 };
-        assert_eq!(parse_header("America/Phoenix").unwrap(), amph);
+        assert_eq!(parse_header(&buf).unwrap(), amph);
     }
 
     #[test]
