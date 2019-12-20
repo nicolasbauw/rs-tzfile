@@ -135,7 +135,7 @@ struct Header {
 }
 
 pub fn parse(tz: &str) -> Result<Tz, TzError> {
-    // Reads TZfile and places its content on the heap
+    // Reads TZfile
     let buf = read(tz)?;
     // Parses TZfile header
     let header = parse_header(&buf)?;
