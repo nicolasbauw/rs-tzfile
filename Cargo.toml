@@ -8,6 +8,7 @@ categories = ["date-and-time", "parsing"]
 edition = "2018"
 license = "GPL-3.0"
 repository = "https://github.com/nicolasbauw/rs-tzfile"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
