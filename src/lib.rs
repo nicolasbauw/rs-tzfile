@@ -46,6 +46,7 @@
 use byteorder::{ByteOrder, BE};
 #[cfg(feature = "with-chrono")]
 use chrono::prelude::*;
+#[cfg(windows)]
 use dirs;
 use std::{env, error, fmt, fs::File, io::prelude::*, path::PathBuf, str::from_utf8};
 
@@ -231,13 +232,15 @@ fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
 }
 
 fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
-    let mut tz_files_root = if cfg!(windows) && env::var_os("TZFILES_DIR").is_none() {
+    #[cfg(windows)]
+    let mut tz_files_root = env::var("TZFILES_DIR").unwrap_or({
         // Default TZ files location (windows) is HOME/.zoneinfo, can be overridden by ENV
         let mut d = dirs::home_dir().unwrap_or(PathBuf::from("C:\\Users"));
         d.push(".zoneinfo");
         d
-    } else {
-        // ENV overrides default directory, or defaults to /usr/share/zoneinfo (Linux / MacOS)
+    });
+    let mut tz_files_root = {
+        // ENV overrides default directory (/usr/share/zoneinfo on Linux and MacOS)
         let mut d = PathBuf::new();
         d.push(env::var("TZFILES_DIR").unwrap_or(format!("/usr/share/zoneinfo/")));
         d
