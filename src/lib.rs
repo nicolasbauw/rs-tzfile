@@ -233,7 +233,7 @@ fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
 
 fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
 
-    // Default TZ files location (windows) is HOME/.zoneinfo, can be overridden by ENV
+    // Default TZ files expected location (windows) is HOME/.zoneinfo, can be overridden by ENV
     #[cfg(windows)]
     let mut tz_files_root = env::var("TZFILES_DIR").unwrap_or({
         let mut d = dirs::home_dir().unwrap_or(PathBuf::from("C:\\Users"));
@@ -241,14 +241,14 @@ fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
         d
     });
 
-    // Default TZ files location (POSIX) is /usr/share/zoneinfo, can be overridden by ENV
+    // Default TZ files expected location (POSIX) is /usr/share/zoneinfo, can be overridden by ENV
     #[cfg(not(windows))]
     let mut tz_files_root = {
         let mut d = PathBuf::new();
         d.push(env::var("TZFILES_DIR").unwrap_or(format!("/usr/share/zoneinfo/")));
         d
     };
-    
+
     tz_files_root.push(tz);
     let mut f = File::open(tz_files_root)?;
     let mut buffer = Vec::new();
