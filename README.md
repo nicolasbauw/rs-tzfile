@@ -14,7 +14,7 @@ To keep the low-level aspect of the library, since 0.5.0 chrono is an optional f
 For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 ```
 [dependencies.libtzfile]
-version = "1.0.0"
+version = "1.0.3"
 features = ["with-chrono"]
 ```
 Here is an example:

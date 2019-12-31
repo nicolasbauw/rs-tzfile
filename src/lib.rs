@@ -8,7 +8,7 @@
 //! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 //! ```text
 //! [dependencies.libtzfile]
-//! version = "1.0.0"
+//! version = "1.0.3"
 //! features = ["with-chrono"]
 //! ```
 //! Here is an example:
