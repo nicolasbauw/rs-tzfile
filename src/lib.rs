@@ -235,11 +235,18 @@ fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
 
     // Default TZ files expected location (windows) is HOME/.zoneinfo, can be overridden by ENV
     #[cfg(windows)]
-    let mut tz_files_root = env::var("TZFILES_DIR").unwrap_or({
-        let mut d = dirs::home_dir().unwrap_or(PathBuf::from("C:\\Users"));
-        d.push(".zoneinfo");
-        d
-    });
+    let mut tz_files_root = match env::var_os("TZFILES_DIR") {
+        Some(tz_dir) => {
+            let mut d = PathBuf::new();
+            d.push(tz_dir);
+            d
+            },
+        None => {
+            let mut d = dirs::home_dir().unwrap_or(PathBuf::from("C:\\Users"));
+            d.push(".zoneinfo");
+            d
+        }
+    };
 
     // Default TZ files expected location (POSIX) is /usr/share/zoneinfo, can be overridden by ENV
     #[cfg(not(windows))]
