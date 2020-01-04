@@ -8,13 +8,11 @@
 //! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 //! ```text
 //! [dependencies.libtzfile]
-//! version = "1.0.3"
+//! version = "1.0.4"
 //! features = ["with-chrono"]
 //! ```
 //! Here is an example:
 //!```
-//! extern crate libtzfile;
-//!
 //! fn main() {
 //!     println!("{:?}", libtzfile::parse("America/Phoenix").unwrap());
 //! }

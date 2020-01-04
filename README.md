@@ -14,13 +14,11 @@ To keep the low-level aspect of the library, since 0.5.0 chrono is an optional f
 For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 ```
 [dependencies.libtzfile]
-version = "1.0.3"
+version = "1.0.4"
 features = ["with-chrono"]
 ```
 Here is an example:
 ```rust
-extern crate libtzfile;
-
 fn main() {
     println!("{:?}", libtzfile::parse("America/Phoenix").unwrap());
 }
