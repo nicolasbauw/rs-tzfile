@@ -4,7 +4,7 @@
 [![Downloads badge](https://img.shields.io/crates/d/libtzfile.svg)](https://crates.io/crates/libtzfile)
 
 
-This low-level library reads the system timezone information files and returns a Tz struct representing the TZfile
+This low-level library reads the system timezone information files provided by IANA and returns a Tz struct representing the TZfile
 fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 Parses V2 (64 bits) format version since 1.0.0, so be aware that the tzh_timecnt_data field is now a `Vec<i64>`.
 
@@ -14,7 +14,7 @@ To keep the low-level aspect of the library, since 0.5.0 chrono is an optional f
 For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 ```
 [dependencies.libtzfile]
-version = "1.0.4"
+version = "1.0.5"
 features = ["with-chrono"]
 ```
 Here is an example:

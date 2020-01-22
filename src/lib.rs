@@ -1,4 +1,4 @@
-//! This low-level library reads the system timezone information files and returns a Tz struct representing the TZfile
+//! This low-level library reads the system timezone information files provided by IANA and returns a Tz struct representing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //! Parses V2 (64 bits) format version since 1.0.0, so be aware that the tzh_timecnt_data field is now a `Vec<i64>`.
 //!
@@ -8,7 +8,7 @@
 //! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 //! ```text
 //! [dependencies.libtzfile]
-//! version = "1.0.4"
+//! version = "1.0.5"
 //! features = ["with-chrono"]
 //! ```
 //! Here is an example:
@@ -62,7 +62,11 @@ pub enum TzError {
     // Bad utf8 string
     BadUtf8String,
     // Only V2 format is supported
-    UnsupportedFormat
+    UnsupportedFormat,
+    // No data matched the request
+    NoData,
+    // Parsing Error
+    ParseError
 }
 
 impl fmt::Display for TzError {
@@ -72,7 +76,9 @@ impl fmt::Display for TzError {
             TzError::InvalidTimezone => "invalid timezone",
             TzError::InvalidMagic => "invalid TZfile",
             TzError::BadUtf8String => "bad utf8 string",
-            TzError::UnsupportedFormat => "only V2 format is supported"
+            TzError::UnsupportedFormat => "only V2 format is supported",
+            TzError::NoData => "no data matched the request",
+            TzError::ParseError => "parsing error"
         })
     }
 }
@@ -80,6 +86,12 @@ impl fmt::Display for TzError {
 impl From<std::io::Error> for TzError {
     fn from(_e: std::io::Error) -> TzError {
         TzError::InvalidTimezone
+    }
+}
+
+impl From<std::num::ParseIntError> for TzError {
+    fn from(_e: std::num::ParseIntError) -> TzError {
+        TzError::ParseError
     }
 }
 
