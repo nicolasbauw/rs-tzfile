@@ -322,4 +322,10 @@ mod tests {
         let c: [isize; 4] = [parse("America/Phoenix").unwrap().tzh_typecnt[0].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[1].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[2].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[3].tt_gmtoff];
         assert_eq!(c, amph);
     }
+
+    #[test]
+    fn parse_abbr () {
+        let abbr: Vec<String> = vec!["LMT".to_string(), "MDT".to_string(), "MST".to_string(), "MWT".to_string()];
+        assert_eq!(parse("America/Phoenix").unwrap().tz_abbr, abbr);
+    }
 }
