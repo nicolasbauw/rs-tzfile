@@ -8,7 +8,7 @@
 //! For libtzfile to return tzh_timecnt_data as `DateTime<Utc>`, you can add this in Cargo.toml:
 //! ```text
 //! [dependencies.libtzfile]
-//! version = "1.0.5"
+//! version = "1.0.6"
 //! features = ["with-chrono"]
 //! ```
 //! Here is an example:
@@ -66,7 +66,9 @@ pub enum TzError {
     // No data matched the request
     NoData,
     // Parsing Error
-    ParseError
+    ParseError,
+    // Empty String
+    EmptyString
 }
 
 impl fmt::Display for TzError {
@@ -78,7 +80,8 @@ impl fmt::Display for TzError {
             TzError::BadUtf8String => "bad utf8 string",
             TzError::UnsupportedFormat => "only V2 format is supported",
             TzError::NoData => "no data matched the request",
-            TzError::ParseError => "parsing error"
+            TzError::ParseError => "parsing error",
+            TzError::EmptyString => "empty string"
         })
     }
 }
@@ -230,8 +233,8 @@ fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
         .split("\u{0}")
         .map(|st| st.to_string())
         .collect();
-    // Removes last empty string
-    tz_abbr.pop().unwrap();
+    // Removes last empty char
+    if tz_abbr.pop().is_none() { return Err(TzError::EmptyString) };
 
     Ok(Tz {
         tzh_timecnt_data: tzh_timecnt_data,
