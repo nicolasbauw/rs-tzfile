@@ -220,19 +220,26 @@ fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
     let tzh_timecnt_indices: &[u8] =
         &buffer[HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8..tzh_timecnt_end];
 
+    let abbrs = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])?;
+
     let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
         .chunks_exact(6)
-        .map(|tti| Ttinfo {
-            tt_gmtoff: BE::read_i32(&tti[0..4]) as isize,
-            tt_isdst: tti[4],
-            tt_abbrind: tti[5] / 4,
+        .map(|tti| {
+            let offset = tti[5];
+            let index = abbrs
+                .chars()
+                .take(offset as usize)
+                .filter(|x| *x == '\0')
+                .count();
+            Ttinfo {
+                tt_gmtoff: BE::read_i32(&tti[0..4]) as isize,
+                tt_isdst: tti[4],
+                tt_abbrind: index as u8,
+            }
         })
         .collect();
 
-    let mut tz_abbr: Vec<String> = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])?
-        .split("\u{0}")
-        .map(|st| st.to_string())
-        .collect();
+    let mut tz_abbr: Vec<String> = abbrs.split("\u{0}").map(|st| st.to_string()).collect();
     // Removes last empty char
     if tz_abbr.pop().is_none() { return Err(TzError::EmptyString) };
 
@@ -327,5 +334,15 @@ mod tests {
     fn parse_abbr () {
         let abbr: Vec<String> = vec!["LMT".to_string(), "MDT".to_string(), "MST".to_string(), "MWT".to_string()];
         assert_eq!(parse("America/Phoenix").unwrap().tz_abbr, abbr);
+    }
+
+    #[test]
+    fn parse_abbr_amsterdam() {
+        let abbr: Vec<String> = vec!["LMT", "NST", "AMT", "+0020", "+0120", "CET", "CEST"]
+            .iter()
+            .map(|x| x.to_string())
+            .collect();
+        assert_eq!(parse("Europe/Amsterdam").unwrap().tz_abbr, abbr);
+        dbg!(parse("Europe/Amsterdam").unwrap());
     }
 }
