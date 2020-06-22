@@ -45,6 +45,6 @@ It uses system TZfiles (default location on Linux and Macos /usr/share/zoneinfo)
 
 $env:TZFILES_DIR="C:\Users\nbauw\Dev\rs-tzfile\zoneinfo\"; cargo run
 
-The tests (cargo test) are written to match [2019c version of timezone database](https://www.iana.org/time-zones).
+The tests (cargo test) are written to match [2019c version of timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 License: GPL-3.0
