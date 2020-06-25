@@ -20,7 +20,7 @@
 //! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 //!```
 //! 
-//! The tests (cargo test) are written to match 2019c version of timezone database.
+//! The tests (cargo test) are written to match 2020a version of timezone database.
 
 use byteorder::{ByteOrder, BE};
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
@@ -229,7 +229,7 @@ mod tests {
     #[test]
     fn parse_hdr() {
         let buf = read(TIMEZONE).unwrap();
-        let amph = Header { tzh_ttisgmtcnt: 0, tzh_ttisstdcnt: 0, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16, v2_header_start: 139 };
+        let amph = Header { tzh_ttisgmtcnt: 4, tzh_ttisstdcnt: 4, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16, v2_header_start: 147 };
         assert_eq!(parse_header(&buf).unwrap(), amph);
     }
 

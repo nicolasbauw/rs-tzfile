@@ -24,6 +24,6 @@ Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -2
 Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 ```
 
-The tests (cargo test) are written to match [2019c version of timezone database](https://data.iana.org/time-zones/tz-link.html).
+The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 License: GPL-3.0
