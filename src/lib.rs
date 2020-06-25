@@ -220,14 +220,15 @@ fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    static TIMEZONE: &str = "/usr/share/zoneinfo/America/Phoenix";
     #[test]
     fn read_file() {
-        assert_eq!(read("America/Phoenix").is_ok(), true);
+        assert_eq!(read(TIMEZONE).is_ok(), true);
     }
 
     #[test]
     fn parse_hdr() {
-        let buf = read("America/Phoenix").unwrap();
+        let buf = read(TIMEZONE).unwrap();
         let amph = Header { tzh_ttisgmtcnt: 0, tzh_ttisstdcnt: 0, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16, v2_header_start: 139 };
         assert_eq!(parse_header(&buf).unwrap(), amph);
     }
@@ -235,7 +236,7 @@ mod tests {
     #[test]
     fn parse_indices() {
         let amph: [u8; 11] = [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2];
-        assert_eq!(parse("America/Phoenix").unwrap().tzh_timecnt_indices, amph);
+        assert_eq!(parse(TIMEZONE).unwrap().tzh_timecnt_indices, amph);
     }
 
     #[test]
@@ -253,29 +254,30 @@ mod tests {
                 -84380400,
                 -68659200
             ];
-        assert_eq!(parse("America/Phoenix").unwrap().tzh_timecnt_data, amph);
+        assert_eq!(parse(TIMEZONE).unwrap().tzh_timecnt_data, amph);
     }
 
     #[test]
     fn parse_ttgmtoff() {
         let amph: [isize; 4] = [-26898, -21600, -25200, -21600];
-        let c: [isize; 4] = [parse("America/Phoenix").unwrap().tzh_typecnt[0].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[1].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[2].tt_gmtoff, parse("America/Phoenix").unwrap().tzh_typecnt[3].tt_gmtoff];
+        let c: [isize; 4] = [parse(TIMEZONE).unwrap().tzh_typecnt[0].tt_gmtoff, parse(TIMEZONE).unwrap().tzh_typecnt[1].tt_gmtoff, parse(TIMEZONE).unwrap().tzh_typecnt[2].tt_gmtoff, parse(TIMEZONE).unwrap().tzh_typecnt[3].tt_gmtoff];
         assert_eq!(c, amph);
     }
 
     #[test]
     fn parse_abbr () {
         let abbr: Vec<String> = vec!["LMT".to_string(), "MDT".to_string(), "MST".to_string(), "MWT".to_string()];
-        assert_eq!(parse("America/Phoenix").unwrap().tz_abbr, abbr);
+        assert_eq!(parse(TIMEZONE).unwrap().tz_abbr, abbr);
     }
 
     #[test]
     fn parse_abbr_amsterdam() {
+        let timezone = "/usr/share/zoneinfo/Europe/Amsterdam";
         let abbr: Vec<String> = vec!["LMT", "NST", "AMT", "+0020", "+0120", "CET", "CEST"]
             .iter()
             .map(|x| x.to_string())
             .collect();
-        assert_eq!(parse("Europe/Amsterdam").unwrap().tz_abbr, abbr);
-        dbg!(parse("Europe/Amsterdam").unwrap());
+        assert_eq!(parse(timezone).unwrap().tz_abbr, abbr);
+        dbg!(parse(timezone).unwrap());
     }
 }
