@@ -266,7 +266,10 @@ mod tests {
 
     #[test]
     fn parse_abbr () {
-        let abbr: Vec<String> = vec!["LMT".to_string(), "MDT".to_string(), "MST".to_string(), "MWT".to_string()];
+        let abbr: Vec<String> = vec!["LMT", "MDT", "MST", "MWT"]
+            .iter()
+            .map(|x| x.to_string())
+            .collect();
         assert_eq!(parse(TIMEZONE).unwrap().tz_abbr, abbr);
     }
 
