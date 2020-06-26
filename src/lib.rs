@@ -17,7 +17,7 @@
 //! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 //!```
 //! 
-//! The tests (cargo test) are written to match 2020a version of timezone database.
+//! The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 use byteorder::{ByteOrder, BE};
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
@@ -86,14 +86,20 @@ impl From<TzError> for std::io::Error {
     }
 }
 
+/// struct representing the TZfile fields
 #[derive(Debug)]
 pub struct Tz {
+    /// transition times table
     pub tzh_timecnt_data: Vec<i64>,
+    /// indices for the next field
     pub tzh_timecnt_indices: Vec<u8>,
+    /// a struct containing UTC offset, daylight saving time, abbreviation index
     pub tzh_typecnt: Vec<Ttinfo>,
+    /// abbreviations table
     pub tz_abbr: Vec<String>,
 }
 
+/// a struct containing UTC offset, daylight saving time, abbreviation index
 #[derive(Debug)]
 pub struct Ttinfo {
     pub tt_gmtoff: isize,
@@ -112,6 +118,7 @@ struct Header {
     v2_header_start: usize,
 }
 
+/// the tz parameter is the timezone to query, ie. "/usr/share/zoneinfo/Europe/Paris"
 pub fn parse(tz: &str) -> Result<Tz, TzError> {
     // Reads TZfile
     let buf = read(tz)?;
