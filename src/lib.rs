@@ -4,7 +4,7 @@
 //! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
 //! 
 //! Here is an example:
-//!```
+//!```text
 //! fn main() {
 //!     println!("{:?}", libtzfile::parse("/usr/share/zoneinfo/America/Phoenix").unwrap());
 //! }
@@ -224,6 +224,9 @@ fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(windows)]
+    static TIMEZONE: &str = "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix";
+    #[cfg(not(windows))]
     static TIMEZONE: &str = "/usr/share/zoneinfo/America/Phoenix";
     #[test]
     fn read_file() {
@@ -279,6 +282,9 @@ mod tests {
 
     #[test]
     fn parse_abbr_amsterdam() {
+        #[cfg(windows)]
+        let timezone = "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Amsterdam";
+        #[cfg(not(windows))]
         let timezone = "/usr/share/zoneinfo/Europe/Amsterdam";
         let abbr: Vec<String> = vec!["LMT", "NST", "AMT", "+0020", "+0120", "CET", "CEST"]
             .iter()
