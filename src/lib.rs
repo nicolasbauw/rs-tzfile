@@ -47,15 +47,15 @@ pub enum TzError {
 
 impl fmt::Display for TzError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("tzfile error: ")?;
+        f.write_str("TZfile error : ")?;
         f.write_str(match self {
-            TzError::InvalidTimezone => "invalid timezone",
-            TzError::InvalidMagic => "invalid TZfile",
-            TzError::BadUtf8String => "bad utf8 string",
-            TzError::UnsupportedFormat => "only V2 format is supported",
-            TzError::NoData => "no data matched the request",
-            TzError::ParseError => "parsing error",
-            TzError::EmptyString => "empty string"
+            TzError::InvalidTimezone => "Invalid timezone",
+            TzError::InvalidMagic => "Invalid TZfile",
+            TzError::BadUtf8String => "Bad utf8 string",
+            TzError::UnsupportedFormat => "Only V2 format is supported",
+            TzError::NoData => "No data matched the request",
+            TzError::ParseError => "Parsing error",
+            TzError::EmptyString => "Empty string"
         })
     }
 }
