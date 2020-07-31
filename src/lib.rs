@@ -23,9 +23,9 @@ use byteorder::{ByteOrder, BE};
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
 
 // TZif magic four bytes
-static MAGIC: u32 = 0x545A6966;
+const MAGIC: u32 = 0x545A6966;
 // Header length
-static HEADER_LEN: usize = 0x2C;
+const HEADER_LEN: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TzError {
