@@ -21,6 +21,8 @@
 
 use byteorder::{ByteOrder, BE};
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
+#[cfg(any(feature = "parse", feature = "json"))]
+use chrono::{DateTime, Utc, TimeZone};
 
 // TZif magic four bytes
 const MAGIC: u32 = 0x545A6966;
@@ -118,7 +120,7 @@ struct Header {
     v2_header_start: usize,
 }
 
-#[cfg(any(features = "parse", feature = "json"))]
+#[cfg(any(feature = "parse", feature = "json"))]
 /// The Tt struct contains one transition time from the parsed TZfile.
 #[derive(Debug, PartialEq)]
 pub struct Tt {
@@ -143,7 +145,7 @@ impl Tz {
         Tz::parse_data(&buf, header)
     }
 
-    #[cfg(any(features = "parse", feature = "json"))]
+    #[cfg(any(feature = "parse", feature = "json"))]
     /// Returns year's transition times for a timezone.
     /// If year is Some(0), returns current year's transition times.
     /// If there's no transition time for selected year, returns the last occured transition time to see selected zone's applying parameters.
@@ -384,17 +386,17 @@ mod tests {
         dbg!(Tz::new(timezone).unwrap());
     }
 
-    #[cfg(features = "parse")]
+    #[cfg(feature = "parse")]
     #[test]
     fn partial_timechanges() {
-        let tz = vec![
-            Timechange {
+        let tt = vec![
+            Tt {
                 time: Utc.ymd(2019, 3, 31).and_hms(1, 0, 0),
                 gmtoff: 7200,
                 isdst: true,
                 abbreviation: String::from("CEST"),
             },
-            Timechange {
+            Tt {
                 time: Utc.ymd(2019, 10, 27).and_hms(1, 0, 0),
                 gmtoff: 3600,
                 isdst: false,
@@ -402,16 +404,16 @@ mod tests {
             },
         ];
         #[cfg(not(windows))]
+        let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap();
         assert_eq!(
-            let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap();
             tz.get_tt(Some(2019)).unwrap(),
-            tz
+            tt
         );
         #[cfg(windows)]
+        let tt = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
         assert_eq!(
-            let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
             tz.get_tt(Some(2019)).unwrap(),
-            tz
+            tt
         );
     }
 }
