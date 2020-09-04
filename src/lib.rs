@@ -121,9 +121,9 @@ struct Header {
 }
 
 #[cfg(any(feature = "parse", feature = "json"))]
-/// The Tt struct contains one transition time from the parsed TZfile.
+/// The TransitionTime struct contains one transition time from the parsed TZfile.
 #[derive(Debug, PartialEq)]
-pub struct Tt {
+pub struct TransitionTime {
     /// The UTC time and date of the transition time, BEFORE new parameters apply
     pub time: DateTime<Utc>,
     /// The UPCOMING offset to GMT
@@ -153,7 +153,7 @@ impl Tz {
     pub fn get_tt(
         &self,
         y: Option<i32>,
-    ) -> Result<Vec<Tt>, TzError> {
+    ) -> Result<Vec<TransitionTime>, TzError> {
         // low-level parse of tzfile
         let timezone = self;
 
@@ -196,7 +196,7 @@ impl Tz {
         // Populating returned Vec<Tt>
         if timechanges.len() != 0 {
             for t in 0..timechanges.len() {
-                let tc = Tt {
+                let tc = TransitionTime{
                     time: Utc.timestamp(timezone.tzh_timecnt_data[timechanges[t]], 0),
                     gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_gmtoff,
                     isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_isdst == 1,
@@ -205,7 +205,7 @@ impl Tz {
                 parsedtimechanges.push(tc);
             }
         } else {
-            let tc = Tt {
+            let tc = TransitionTime{
                 time: Utc.timestamp(timezone.tzh_timecnt_data[nearest_timechange], 0),
                 gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_gmtoff,
                 isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_isdst == 1,
@@ -390,13 +390,13 @@ mod tests {
     #[test]
     fn partial_timechanges() {
         let tt = vec![
-            Tt {
+            TransitionTime{
                 time: Utc.ymd(2019, 3, 31).and_hms(1, 0, 0),
                 gmtoff: 7200,
                 isdst: true,
                 abbreviation: String::from("CEST"),
             },
-            Tt {
+            TransitionTime{
                 time: Utc.ymd(2019, 10, 27).and_hms(1, 0, 0),
                 gmtoff: 3600,
                 isdst: false,
