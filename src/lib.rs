@@ -118,6 +118,20 @@ struct Header {
     v2_header_start: usize,
 }
 
+#[cfg(any(features = "parse", feature = "json"))]
+/// The Tt struct contains one transition time from the parsed TZfile.
+#[derive(Debug, PartialEq)]
+pub struct Tt {
+    /// The UTC time and date of the transition time, BEFORE new parameters apply
+    pub time: DateTime<Utc>,
+    /// The UPCOMING offset to GMT
+    pub gmtoff: isize,
+    /// Is upcoming change dst ?
+    pub isdst: bool,
+    /// TZ abbreviation of upcoming change
+    pub abbreviation: String,
+}
+
 impl Tz {
     /// the tz parameter is the timezone to query, ie. "/usr/share/zoneinfo/Europe/Paris"
     pub fn new(tz: &str) -> Result<Tz, TzError> {
@@ -127,6 +141,77 @@ impl Tz {
         let header = Tz::parse_header(&buf)?;
         // Parses data
         Tz::parse_data(&buf, header)
+    }
+
+    #[cfg(any(features = "parse", feature = "json"))]
+    /// Returns year's transition times for a timezone.
+    /// If year is Some(0), returns current year's transition times.
+    /// If there's no transition time for selected year, returns the last occured transition time to see selected zone's applying parameters.
+    /// If no year (None) is specified, returns all time changes recorded in the TZfile .
+    pub fn get_tt(
+        &self,
+        y: Option<i32>,
+    ) -> Result<Vec<Tt>, TzError> {
+        // low-level parse of tzfile
+        let timezone = self;
+
+        // used to store transition time indices
+        let mut timechanges = Vec::new();
+        let mut nearest_timechange: usize = 0;
+
+        // Used to store parsed transition times
+        let mut parsedtimechanges = Vec::new();
+
+        // Get and store the transition time indices for requested year
+        if y.is_some() {
+            let d = Utc::now();
+            let y = y.unwrap();
+            // year = 0 ? current year is requested
+            let y = if y == 0 {
+                d.format("%Y").to_string().parse()?
+            } else {
+                y
+            };
+            // for year comparison
+            let yearbeg = Utc.ymd(y, 1, 1).and_hms(0, 0, 0).timestamp();
+            let yearend = Utc.ymd(y, 12, 31).and_hms(0, 0, 0).timestamp();
+            for t in 0..timezone.tzh_timecnt_data.len() {
+                if timezone.tzh_timecnt_data[t] > yearbeg && timezone.tzh_timecnt_data[t] < yearend {
+                    timechanges.push(t);
+                }
+                if timezone.tzh_timecnt_data[t] < yearbeg {
+                    nearest_timechange = t;
+                };
+            }
+        } else {
+            // No year requested ? stores all transition times
+            for t in 0..timezone.tzh_timecnt_data.len() {
+                /* patch : chrono panics on an overflowing timestamp, and a 0xF800000000000000 timestamp is present in some Debian 10 TZfiles.*/
+                if timezone.tzh_timecnt_data[t] != -576460752303423488 { timechanges.push(t) };
+            }
+        }
+
+        // Populating returned Vec<Tt>
+        if timechanges.len() != 0 {
+            for t in 0..timechanges.len() {
+                let tc = Tt {
+                    time: Utc.timestamp(timezone.tzh_timecnt_data[timechanges[t]], 0),
+                    gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_gmtoff,
+                    isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_isdst == 1,
+                    abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_abbrind as usize].to_string(),
+                };
+                parsedtimechanges.push(tc);
+            }
+        } else {
+            let tc = Tt {
+                time: Utc.timestamp(timezone.tzh_timecnt_data[nearest_timechange], 0),
+                gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_gmtoff,
+                isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_isdst == 1,
+                abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_abbrind as usize].to_string(),
+            };
+            parsedtimechanges.push(tc);
+        }
+        Ok(parsedtimechanges)
     }
 
     fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
@@ -297,5 +382,36 @@ mod tests {
             .collect();
         assert_eq!(Tz::new(timezone).unwrap().tz_abbr, abbr);
         dbg!(Tz::new(timezone).unwrap());
+    }
+
+    #[cfg(features = "parse")]
+    #[test]
+    fn partial_timechanges() {
+        let tz = vec![
+            Timechange {
+                time: Utc.ymd(2019, 3, 31).and_hms(1, 0, 0),
+                gmtoff: 7200,
+                isdst: true,
+                abbreviation: String::from("CEST"),
+            },
+            Timechange {
+                time: Utc.ymd(2019, 10, 27).and_hms(1, 0, 0),
+                gmtoff: 3600,
+                isdst: false,
+                abbreviation: String::from("CET"),
+            },
+        ];
+        #[cfg(not(windows))]
+        assert_eq!(
+            let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap();
+            tz.get_tt(Some(2019)).unwrap(),
+            tz
+        );
+        #[cfg(windows)]
+        assert_eq!(
+            let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
+            tz.get_tt(Some(2019)).unwrap(),
+            tz
+        );
     }
 }
