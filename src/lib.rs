@@ -416,4 +416,34 @@ mod tests {
             tt
         );
     }
+
+    #[cfg(feature = "parse")]
+    #[test]
+    fn total_timechanges() {
+        let tt = vec![
+            TransitionTime { time: Utc.ymd(1883, 11, 18).and_hms(19, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
+            TransitionTime { time: Utc.ymd(1918, 03, 31).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MDT") },
+            TransitionTime { time: Utc.ymd(1918, 10, 27).and_hms(8, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
+            TransitionTime { time: Utc.ymd(1919, 03, 30).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MDT") },
+            TransitionTime { time: Utc.ymd(1919, 10, 26).and_hms(8, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
+            TransitionTime { time: Utc.ymd(1942, 02, 09).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MWT") },
+            TransitionTime { time: Utc.ymd(1944, 01, 01).and_hms(6, 1, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
+            TransitionTime { time: Utc.ymd(1944, 04, 01).and_hms(7, 1, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MWT") },
+            TransitionTime { time: Utc.ymd(1944, 10, 01).and_hms(6, 1, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
+            TransitionTime { time: Utc.ymd(1967, 04, 30).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MDT") },
+            TransitionTime { time: Utc.ymd(1967, 10, 29).and_hms(8, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") }
+        ];
+        #[cfg(not(windows))]
+        let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
+        assert_eq!(
+            tz.get_tt(None).unwrap(),
+            tt
+        );
+        #[cfg(windows)]
+        let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix");
+        assert_eq!(
+            tz.get_tt(None).unwrap(),
+            tt
+        );
+    }
 }
