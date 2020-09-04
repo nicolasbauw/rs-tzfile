@@ -6,7 +6,7 @@
 //! Here is an example:
 //!```text
 //! fn main() {
-//!     println!("{:?}", libtzfile::parse("/usr/share/zoneinfo/America/Phoenix").unwrap());
+//!     println!("{:?}", libtzfile::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
 //! }
 //!```
 //!
@@ -118,32 +118,33 @@ struct Header {
     v2_header_start: usize,
 }
 
-/// the tz parameter is the timezone to query, ie. "/usr/share/zoneinfo/Europe/Paris"
-pub fn parse(tz: &str) -> Result<Tz, TzError> {
-    // Reads TZfile
-    let buf = read(tz)?;
-    // Parses TZfile header
-    let header = parse_header(&buf)?;
-    // Parses data
-    parse_data(&buf, header)
-}
+impl Tz {
+    /// the tz parameter is the timezone to query, ie. "/usr/share/zoneinfo/Europe/Paris"
+    pub fn new(tz: &str) -> Result<Tz, TzError> {
+        // Reads TZfile
+        let buf = Tz::read(tz)?;
+        // Parses TZfile header
+        let header = Tz::parse_header(&buf)?;
+        // Parses data
+        Tz::parse_data(&buf, header)
+    }
 
-fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
-    let magic = BE::read_u32(&buffer[0x00..=0x03]);
-    if magic != MAGIC {
-        return Err(TzError::InvalidMagic)
-    }
-    if buffer[4] != 50 {
-        return Err(TzError::UnsupportedFormat)
-    }
-    let tzh_ttisgmtcnt = BE::read_i32(&buffer[0x14..=0x17]) as usize;
-    let tzh_ttisstdcnt = BE::read_i32(&buffer[0x18..=0x1B]) as usize;
-    let tzh_leapcnt = BE::read_i32(&buffer[0x1C..=0x1F]) as usize;
-    let tzh_timecnt = BE::read_i32(&buffer[0x20..=0x23]) as usize;
-    let tzh_typecnt = BE::read_i32(&buffer[0x24..=0x27]) as usize;
-    let tzh_charcnt = BE::read_i32(&buffer[0x28..=0x2b]) as usize;
-    // V2 format data start
-    let s: usize =
+    fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
+        let magic = BE::read_u32(&buffer[0x00..=0x03]);
+        if magic != MAGIC {
+            return Err(TzError::InvalidMagic)
+        }
+        if buffer[4] != 50 {
+            return Err(TzError::UnsupportedFormat)
+        }
+        let tzh_ttisgmtcnt = BE::read_i32(&buffer[0x14..=0x17]) as usize;
+        let tzh_ttisstdcnt = BE::read_i32(&buffer[0x18..=0x1B]) as usize;
+        let tzh_leapcnt = BE::read_i32(&buffer[0x1C..=0x1F]) as usize;
+        let tzh_timecnt = BE::read_i32(&buffer[0x20..=0x23]) as usize;
+        let tzh_typecnt = BE::read_i32(&buffer[0x24..=0x27]) as usize;
+        let tzh_charcnt = BE::read_i32(&buffer[0x28..=0x2b]) as usize;
+        // V2 format data start
+        let s: usize =
             tzh_timecnt * 5 +
             tzh_typecnt * 6 +
             tzh_leapcnt * 8 +
@@ -151,99 +152,100 @@ fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
             tzh_ttisstdcnt +
             tzh_ttisgmtcnt +
             44;
-    Ok(Header {
-        tzh_ttisgmtcnt: BE::read_i32(&buffer[s+0x14..=s+0x17]) as usize,
-        tzh_ttisstdcnt: BE::read_i32(&buffer[s+0x18..=s+0x1B]) as usize,
-        tzh_leapcnt: BE::read_i32(&buffer[s+0x1C..=s+0x1F]) as usize,
-        tzh_timecnt: BE::read_i32(&buffer[s+0x20..=s+0x23]) as usize,
-        tzh_typecnt: BE::read_i32(&buffer[s+0x24..=s+0x27]) as usize,
-        tzh_charcnt: BE::read_i32(&buffer[s+0x28..=s+0x2b]) as usize,
-        v2_header_start: s
-    })
-}
-
-fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
-    // Calculates fields lengths and indexes (Version 2 format)
-    let tzh_timecnt_len: usize = header.tzh_timecnt * 9;
-    let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
-    let tzh_leapcnt_len: usize = header.tzh_leapcnt * 12;
-    let tzh_charcnt_len: usize = header.tzh_charcnt;
-    let tzh_timecnt_end: usize = HEADER_LEN + header.v2_header_start + tzh_timecnt_len;
-    let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;
-    let tzh_leapcnt_end: usize = tzh_typecnt_end + tzh_leapcnt_len;
-    let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
-
-    // Extracting data fields
-    let tzh_timecnt_data: Vec<i64> = buffer
-        [HEADER_LEN + header.v2_header_start..HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8]
-        .chunks_exact(8)
-        .map(|tt| BE::read_i64(tt))
-        .collect();
-
-    let tzh_timecnt_indices: &[u8] =
-        &buffer[HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8..tzh_timecnt_end];
-
-    let abbrs = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])?;
-
-    let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
-        .chunks_exact(6)
-        .map(|tti| {
-            let offset = tti[5];
-            let index = abbrs
-                .chars()
-                .take(offset as usize)
-                .filter(|x| *x == '\0')
-                .count();
-            Ttinfo {
-                tt_gmtoff: BE::read_i32(&tti[0..4]) as isize,
-                tt_isdst: tti[4],
-                tt_abbrind: index as u8,
-            }
+        Ok(Header {
+            tzh_ttisgmtcnt: BE::read_i32(&buffer[s+0x14..=s+0x17]) as usize,
+            tzh_ttisstdcnt: BE::read_i32(&buffer[s+0x18..=s+0x1B]) as usize,
+            tzh_leapcnt: BE::read_i32(&buffer[s+0x1C..=s+0x1F]) as usize,
+            tzh_timecnt: BE::read_i32(&buffer[s+0x20..=s+0x23]) as usize,
+            tzh_typecnt: BE::read_i32(&buffer[s+0x24..=s+0x27]) as usize,
+            tzh_charcnt: BE::read_i32(&buffer[s+0x28..=s+0x2b]) as usize,
+            v2_header_start: s
         })
-        .collect();
+    }
 
-    let mut tz_abbr: Vec<String> = abbrs.split("\u{0}").map(|st| st.to_string()).collect();
-    // Removes last empty char
-    if tz_abbr.pop().is_none() { return Err(TzError::EmptyString) };
+    fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
+        // Calculates fields lengths and indexes (Version 2 format)
+        let tzh_timecnt_len: usize = header.tzh_timecnt * 9;
+        let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
+        let tzh_leapcnt_len: usize = header.tzh_leapcnt * 12;
+        let tzh_charcnt_len: usize = header.tzh_charcnt;
+        let tzh_timecnt_end: usize = HEADER_LEN + header.v2_header_start + tzh_timecnt_len;
+        let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;
+        let tzh_leapcnt_end: usize = tzh_typecnt_end + tzh_leapcnt_len;
+        let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
 
-    Ok(Tz {
-        tzh_timecnt_data: tzh_timecnt_data,
-        tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
-        tzh_typecnt: tzh_typecnt,
-        tz_abbr: tz_abbr,
-    })
-}
+        // Extracting data fields
+        let tzh_timecnt_data: Vec<i64> = buffer
+            [HEADER_LEN + header.v2_header_start..HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8]
+            .chunks_exact(8)
+            .map(|tt| BE::read_i64(tt))
+            .collect();
 
-fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
-    let mut f = File::open(tz)?;
-    let mut buffer = Vec::new();
-    f.read_to_end(&mut buffer)?;
-    Ok(buffer)
+        let tzh_timecnt_indices: &[u8] =
+            &buffer[HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8..tzh_timecnt_end];
+
+        let abbrs = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])?;
+
+        let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
+            .chunks_exact(6)
+            .map(|tti| {
+                let offset = tti[5];
+                let index = abbrs
+                    .chars()
+                    .take(offset as usize)
+                    .filter(|x| *x == '\0')
+                    .count();
+                Ttinfo {
+                    tt_gmtoff: BE::read_i32(&tti[0..4]) as isize,
+                    tt_isdst: tti[4],
+                    tt_abbrind: index as u8,
+                }
+            })
+            .collect();
+
+        let mut tz_abbr: Vec<String> = abbrs.split("\u{0}").map(|st| st.to_string()).collect();
+        // Removes last empty char
+        if tz_abbr.pop().is_none() { return Err(TzError::EmptyString) };
+
+        Ok(Tz {
+            tzh_timecnt_data: tzh_timecnt_data,
+            tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
+            tzh_typecnt: tzh_typecnt,
+            tz_abbr: tz_abbr,
+        })
+    }
+
+    fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
+        let mut f = File::open(tz)?;
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer)?;
+        Ok(buffer)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::*;
     #[cfg(windows)]
     static TIMEZONE: &str = "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix";
     #[cfg(not(windows))]
     static TIMEZONE: &str = "/usr/share/zoneinfo/America/Phoenix";
     #[test]
     fn read_file() {
-        assert_eq!(read(TIMEZONE).is_ok(), true);
+        assert_eq!(Tz::read(TIMEZONE).is_ok(), true);
     }
 
     #[test]
     fn parse_hdr() {
-        let buf = read(TIMEZONE).unwrap();
+        let buf = Tz::read(TIMEZONE).unwrap();
         let amph = Header { tzh_ttisgmtcnt: 4, tzh_ttisstdcnt: 4, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16, v2_header_start: 147 };
-        assert_eq!(parse_header(&buf).unwrap(), amph);
+        assert_eq!(Tz::parse_header(&buf).unwrap(), amph);
     }
 
     #[test]
     fn parse_indices() {
         let amph: [u8; 11] = [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2];
-        assert_eq!(parse(TIMEZONE).unwrap().tzh_timecnt_indices, amph);
+        assert_eq!(Tz::new(TIMEZONE).unwrap().tzh_timecnt_indices, amph);
     }
 
     #[test]
@@ -261,13 +263,16 @@ mod tests {
                 -84380400,
                 -68659200
             ];
-        assert_eq!(parse(TIMEZONE).unwrap().tzh_timecnt_data, amph);
+        assert_eq!(Tz::new(TIMEZONE).unwrap().tzh_timecnt_data, amph);
     }
 
     #[test]
     fn parse_ttgmtoff() {
         let amph: [isize; 4] = [-26898, -21600, -25200, -21600];
-        let c: [isize; 4] = [parse(TIMEZONE).unwrap().tzh_typecnt[0].tt_gmtoff, parse(TIMEZONE).unwrap().tzh_typecnt[1].tt_gmtoff, parse(TIMEZONE).unwrap().tzh_typecnt[2].tt_gmtoff, parse(TIMEZONE).unwrap().tzh_typecnt[3].tt_gmtoff];
+        let c: Vec<isize> = Tz::new(TIMEZONE).unwrap().tzh_typecnt
+            .iter()
+            .map(|ttinfo| ttinfo.tt_gmtoff)
+            .collect();
         assert_eq!(c, amph);
     }
 
@@ -277,7 +282,7 @@ mod tests {
             .iter()
             .map(|x| x.to_string())
             .collect();
-        assert_eq!(parse(TIMEZONE).unwrap().tz_abbr, abbr);
+        assert_eq!(Tz::new(TIMEZONE).unwrap().tz_abbr, abbr);
     }
 
     #[test]
@@ -290,7 +295,7 @@ mod tests {
             .iter()
             .map(|x| x.to_string())
             .collect();
-        assert_eq!(parse(timezone).unwrap().tz_abbr, abbr);
-        dbg!(parse(timezone).unwrap());
+        assert_eq!(Tz::new(timezone).unwrap().tz_abbr, abbr);
+        dbg!(Tz::new(timezone).unwrap());
     }
 }
