@@ -642,7 +642,7 @@ mod tests {
     }
 
     // cargo test --features=parse
-    #[cfg(feature = "parse")]
+    #[cfg(any(feature = "parse", feature = "json"))]
     #[test]
     fn partial_timechanges() {
         let tt = vec![
@@ -666,7 +666,7 @@ mod tests {
         assert_eq!(tz.transition_times(Some(2019)).unwrap(), tt);
     }
 
-    #[cfg(feature = "parse")]
+    #[cfg(any(feature = "parse", feature = "json"))]
     #[test]
     fn total_timechanges() {
         let tt = vec![
@@ -741,7 +741,7 @@ mod tests {
         assert_eq!(tz.transition_times(None).unwrap(), tt);
     }
 
-    #[cfg(feature = "parse")]
+    #[cfg(any(feature = "parse", feature = "json"))]
     #[test]
     fn zoneinfo() {
         #[cfg(not(windows))]
