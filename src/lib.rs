@@ -1,4 +1,4 @@
-//! This library reads the system timezone information files provided by IANA and creates a Tz struct representing the TZfile
+//! This library reads the system timezone information files provided by IANA and returns a Tz struct representing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
 //! For higher level parsing, you can enable the **parse** or **json** features (merged from the former [tzparse](https://crates.io/crates/tzparse) library).
@@ -42,7 +42,7 @@
 //! Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z, datetime: 2020-09-05T18:41:44.279502100+02:00, dst_from: Some(2020-03-29T01:00:00Z), dst_until: Some(2020-10-25T01:00:00Z), dst_period: true, raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST", week_number: 36 }
 //! ```
 //! 
-//! This more complete structure can be transformed to json via a method of the json feature (which includes methods from parse feature):
+//! This more complete structure can be transformed to json via a method of the json feature (which includes methods from the parse feature):
 //!```rust
 //! use libtzfile::{Tz, TzError};
 //! fn main() -> Result<(), TzError> {
