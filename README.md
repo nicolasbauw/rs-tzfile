@@ -4,18 +4,17 @@
 [![Current docs Version](https://docs.rs/libtzfile/badge.svg)](https://docs.rs/libtzfile)
 [![Downloads badge](https://img.shields.io/crates/d/libtzfile.svg)](https://crates.io/crates/libtzfile)
 
-
 This library reads the system timezone information files provided by IANA and returns a Tz struct representing the TZfile
 fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 
 For higher level parsing, you can enable the **parse** or **json** features (merged from the former [tzparse](https://crates.io/crates/tzparse) library).
 
+In this documentation's examples, 'tzfile' is the TZfile path, for instance "/usr/share/zoneinfo/Europe/Paris".
+
 Example without any feature enabled, if you want to use your own code for higher level parsing:
 ```rust
 use libtzfile::Tz;
-fn main() {
-    println!("{:?}", Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
-}
+println!("{:?}", Tz::new(tzfile).unwrap());
 ```
 
 ```
@@ -27,9 +26,7 @@ For instance, to display 2020 DST transitions in France, you can use the transit
 
 ```rust
 use libtzfile::Tz;
-fn main() {
-    println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().transition_times(Some(2020)).unwrap());
-}
+println!("{:?}", Tz::new(tzfile).unwrap().transition_times(Some(2020)).unwrap());
 ```
 
 ```
@@ -40,9 +37,7 @@ If you want more complete information about the timezone, you can use the zonein
 
 ```rust
 use libtzfile::Tz;
-fn main() {
-    println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap());
-}
+println!("{:?}", Tz::new(tzfile).unwrap().zoneinfo().unwrap());
 ```
 
 ```
@@ -52,11 +47,8 @@ Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z,
 This more complete structure can be transformed to json via a method of the json feature (which includes methods from the parse feature):
 ```rust
 use libtzfile::{Tz, TzError};
-fn main() -> Result<(), TzError> {
-    let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris")?.zoneinfo()?.to_json()?;
-    println!("{}", tz);
-    Ok(())
-}
+let tz = Tz::new(tzfile)?.zoneinfo()?.to_json()?;
+println!("{}", tz);
 ```
 
 ```
@@ -65,6 +57,6 @@ fn main() -> Result<(), TzError> {
 
 This last method and feature is used for instance in my [world time API](https://github.com/nicolasbauw/world-time-api).
 
-The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html) (ubuntu).
+The tests (cargo test --features=json) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html) (ubuntu).
 
 License: GPL-3.0
