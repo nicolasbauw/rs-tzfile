@@ -1,6 +1,12 @@
 # Changelog
 
-### v1.1.0 (2020-06-23)
+### 2.0.0 (2020-09-05)
+
+- [Merged] Functionality from the (no longer updated) tzparse crate 
+- [Added] Error conversion for serde (json feature)
+- [Renamed] some fields, structs and functions, updated the doc accordingly
+
+### 1.1.0 (2020-06-23)
 
 - [Removed] Chrono feature
 - [Removed] Tzfiles root dir override by ENV
