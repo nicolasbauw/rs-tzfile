@@ -386,6 +386,7 @@ mod tests {
         dbg!(Tz::new(timezone).unwrap());
     }
 
+    // cargo test --features=parse
     #[cfg(feature = "parse")]
     #[test]
     fn partial_timechanges() {
