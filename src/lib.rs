@@ -626,10 +626,7 @@ mod tests {
                 abbreviation: String::from("MST"),
             },
         ];
-        #[cfg(not(windows))]
-        let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
-        #[cfg(windows)]
-        let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix").unwrap();
+        let tz = Tz::new(TIMEZONE).unwrap();
         assert_eq!(tz.transition_times(None).unwrap(), tt);
     }
 
