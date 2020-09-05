@@ -3,7 +3,7 @@
 //!
 //! For higher level parsing, you can enable the **parse** and **json** features (former [tzparse](https://crates.io/crates/tzparse) library).
 //!
-//! Here is an example:
+//! Example without any feature enabled, if you want to use your own code for higher level parsing:
 //!```rust
 //! use libtzfile::Tz;
 //! fn main() {
@@ -13,6 +13,33 @@
 //!
 //!```text
 //! Tz { tzh_timecnt_data: [-2717643600, -1633273200, -1615132800, -1601823600, -1583683200, -880210800, -820519140, -812653140, -796845540, -84380400, -68659200], tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2], tzh_typecnt: [Ttinfo { tt_gmtoff: -26898, tt_isdst: 0, tt_abbrind: 0 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 2 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
+//! ```
+//! 
+//! With the parse feature enabled, you have access to useful methods.
+//! For instance, to display 2020 DST transitions in France, you can use the transition_times method:
+//! 
+//! ```rust
+//! use libtzfile::Tz;
+//! fn main() {
+//!     println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().transition_times(Some(2020)).unwrap());
+//! }
+//! ```
+//! 
+//! ```text
+//! [TransitionTime { time: 2020-03-29T01:00:00Z, utc_offset: 7200, isdst: true, abbreviation: "CEST" }, TransitionTime { time: 2020-10-25T01:00:00Z, utc_offset: 3600, isdst: false, abbreviation: "CET" }]
+//! ```
+//! 
+//! If you want more complete information about the timezone, you can use the zoneinfo method, which returns a more complete structure:
+//! 
+//! ```rust
+//! use libtzfile::Tz;
+//! fn main() {
+//!     println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap());
+//! }
+//!```
+//! 
+//! ```text
+//! Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z, datetime: 2020-09-05T18:41:44.279502100+02:00, dst_from: Some(2020-03-29T01:00:00Z), dst_until: Some(2020-10-25T01:00:00Z), dst_period: true, raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST", week_number: 36 }
 //! ```
 //!
 //! The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html) (ubuntu).
@@ -86,7 +113,7 @@ impl From<TzError> for std::io::Error {
     }
 }
 
-/// This structure contains the splitted TZfile fields.
+/// This is the crate's primary structure, who contains the splitted TZfile fields and optional (features) methods.
 #[derive(Debug)]
 pub struct Tz {
     /// transition times table
@@ -135,6 +162,11 @@ pub struct TransitionTime {
 }
 
 /// Convenient and human-readable informations about a timezone (parse feature).
+/// Some explanations about the offset fields:
+/// - raw_offset : the "normal" offset to utc, in seconds
+/// - dst_offset : the offset to utc during daylight saving time, in seconds
+/// - utc_offset : the current offset to utc, taking into account daylight saving time or not (according to dst_from and dst_until), in +/- HH:MM
+
 #[cfg(any(feature = "parse", feature = "json"))]
 #[derive(Debug)]
 pub struct Tzinfo {
@@ -181,8 +213,8 @@ impl Tz {
     #[cfg(any(feature = "parse", feature = "json"))]
     /// Returns year's transition times for a timezone.
     /// If year is Some(0), returns current year's transition times.
-    /// If there's no transition time for selected year, returns the last occured transition time to see selected zone's applying parameters.
-    /// If no year (None) is specified, returns all time changes recorded in the TZfile .
+    /// If there's no transition time for selected year, returns the last occured transition time (zone's current parameters).
+    /// If no year (None) is specified, returns all transition times recorded in the TZfile .
     pub fn transition_times(&self, y: Option<i32>) -> Result<Vec<TransitionTime>, TzError> {
         let timezone = self;
 
