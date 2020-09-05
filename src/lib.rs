@@ -1,23 +1,21 @@
-//! This library reads the system timezone information files provided by IANA and returns a Tz struct representing the TZfile
+//! This library reads the system timezone information files provided by IANA and creates a Tz struct representing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
-//! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
+//! For higher level parsing, you can enable the **parse** and **json** features (former [tzparse](https://crates.io/crates/tzparse) library).
 //!
 //! Here is an example:
-//!```text
+//!```rust
+//! use libtzfile::Tz
 //! fn main() {
-//!     println!("{:?}", libtzfile::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
+//!     println!("{:?}", Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
 //! }
 //!```
 //!
 //!```text
-//! Tz { tzh_timecnt_data: [-2717643600, -1633273200, -1615132800, -1601823600, -1583683200, -880210800, -820519140, -812653140, -796845540, -84380400, -68659200],
-//! tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2], tzh_typecnt: [Ttinfo { tt_gmtoff: -26898, tt_isdst: 0, tt_abbrind: 0 },
-//! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 2 },
-//! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
-//!```
+//! Tz { tzh_timecnt_data: [-2717643600, -1633273200, -1615132800, -1601823600, -1583683200, -880210800, -820519140, -812653140, -796845540, -84380400, -68659200], tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2], tzh_typecnt: [Ttinfo { tt_gmtoff: -26898, tt_isdst: 0, tt_abbrind: 0 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 2 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
+//! ```
 //!
-//! The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html).
+//! The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html) (ubuntu).
 
 use byteorder::{ByteOrder, BE};
 #[cfg(any(feature = "parse", feature = "json"))]
@@ -88,7 +86,7 @@ impl From<TzError> for std::io::Error {
     }
 }
 
-/// struct representing the TZfile fields
+/// This structure contains the splitted TZfile fields.
 #[derive(Debug)]
 pub struct Tz {
     /// transition times table
@@ -103,7 +101,7 @@ pub struct Tz {
     name: String,
 }
 
-/// a struct containing UTC offset, daylight saving time, abbreviation index
+/// This structure (contained in the Tz struct) contains UTC offset, daylight saving time, abbreviation index.
 #[derive(Debug)]
 pub struct Ttinfo {
     pub tt_gmtoff: isize,
@@ -123,7 +121,7 @@ struct Header {
 }
 
 #[cfg(any(feature = "parse", feature = "json"))]
-/// The TransitionTime struct contains one transition time from the parsed TZfile.
+/// The TransitionTime struct contains one transition time (parse feature).
 #[derive(Debug, PartialEq)]
 pub struct TransitionTime {
     /// The UTC time and date of the transition time, BEFORE new parameters apply
@@ -137,7 +135,12 @@ pub struct TransitionTime {
 }
 
 impl Tz {
-    /// the tz parameter is the timezone to query, ie. "/usr/share/zoneinfo/Europe/Paris"
+    /// Creates a Tz struct from a timezone file.
+    /// Example:
+    /// ```rust
+    /// use libtzfile::Tz;
+    /// let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
+    /// ```
     pub fn new(tz: &str) -> Result<Tz, TzError> {
         // Reads TZfile
         let buf = Tz::read(tz)?;
