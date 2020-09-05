@@ -41,13 +41,44 @@
 //! ```text
 //! Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z, datetime: 2020-09-05T18:41:44.279502100+02:00, dst_from: Some(2020-03-29T01:00:00Z), dst_until: Some(2020-10-25T01:00:00Z), dst_period: true, raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST", week_number: 36 }
 //! ```
-//!
+//! 
+//! This more complete structure can be transformed to json via a method of the json feature (which includes methods from parse feature):
+//!```rust
+//! use libtzfile::{Tz, TzError};
+//! fn main() -> Result<(), TzError> {
+//!     let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris")?.zoneinfo()?.to_json()?;
+//!     println!("{}", tz);
+//!     Ok(())
+//! }
+//!```
+//! 
+//!```text
+//! {"timezone":"Europe/Paris","utc_datetime":"2020-09-05T18:04:50.546668500Z","datetime":"2020-09-05T20:04:50.546668500+02:00","dst_from":"2020-03-29T01:00:00Z","dst_until":"2020-10-25T01:00:00Z","dst_period":true,"raw_offset":3600,"dst_offset":7200,"utc_offset":"+02:00","abbreviation":"CEST","week_number":36}
+//!```
+//! 
 //! The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html) (ubuntu).
 
 use byteorder::{ByteOrder, BE};
 #[cfg(any(feature = "parse", feature = "json"))]
 use chrono::{DateTime, TimeZone, Utc, FixedOffset};
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
+#[cfg(feature = "json")]
+use serde::Serialize;
+
+#[cfg(feature = "json")]
+mod offset_serializer {
+    use serde::Serialize;
+    fn offset_to_json(t: chrono::FixedOffset) -> String {
+        format!("{:?}", t)
+    }
+
+    pub fn serialize<S: serde::Serializer>(
+        time: &chrono::FixedOffset,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        offset_to_json(time.clone()).serialize(serializer)
+    }
+}
 
 // TZif magic four bytes
 const MAGIC: u32 = 0x545A6966;
@@ -70,6 +101,8 @@ pub enum TzError {
     ParseError,
     // Empty String
     EmptyString,
+    // Json conversion error
+    JsonError
 }
 
 impl fmt::Display for TzError {
@@ -83,6 +116,7 @@ impl fmt::Display for TzError {
             TzError::NoData => "No data matched the request",
             TzError::ParseError => "Parsing error",
             TzError::EmptyString => "Empty string",
+            TzError::JsonError => "Could not convert to json"
         })
     }
 }
@@ -105,13 +139,20 @@ impl From<std::str::Utf8Error> for TzError {
     }
 }
 
-impl error::Error for TzError {}
-
 impl From<TzError> for std::io::Error {
     fn from(e: TzError) -> std::io::Error {
         std::io::Error::new(std::io::ErrorKind::Other, e)
     }
 }
+
+#[cfg(feature = "json")]
+impl From<serde_json::error::Error> for TzError {
+    fn from(_e: serde_json::error::Error) -> TzError {
+        TzError::JsonError
+    }
+}
+
+impl error::Error for TzError {}
 
 /// This is the crate's primary structure, which contains the splitted TZfile fields and optional (features) methods.
 #[derive(Debug)]
@@ -167,8 +208,35 @@ pub struct TransitionTime {
 /// - raw_offset : the "normal" offset to utc, in seconds
 /// - dst_offset : the offset to utc during daylight saving time, in seconds
 /// - utc_offset : the current offset to utc, taking into account daylight saving time or not (according to dst_from and dst_until), in +/- HH:MM
+#[cfg(feature = "json")]
+#[derive(Debug, Serialize)]
+pub struct Tzinfo {
+    /// Timezone name
+    pub timezone: String,
+    /// UTC time
+    pub utc_datetime: DateTime<Utc>,
+    /// Local time
+    pub datetime: DateTime<FixedOffset>,
+    /// Start of DST period
+    pub dst_from: Option<DateTime<Utc>>,
+    /// End of DST period
+    pub dst_until: Option<DateTime<Utc>>,
+    /// Are we in DST period ?
+    pub dst_period: bool,
+    /// Normal offset to GMT, in seconds
+    pub raw_offset: isize,
+    /// DST offset to GMT, in seconds
+    pub dst_offset: isize,
+    /// current offset to GMT, in +/-HH:MM
+    #[serde(with = "offset_serializer")]
+    pub utc_offset: FixedOffset,
+    /// Timezone abbreviation
+    pub abbreviation: String,
+    /// Week number
+    pub week_number: i32,
+}
 
-#[cfg(any(feature = "parse", feature = "json"))]
+#[cfg(feature = "parse")]
 #[derive(Debug)]
 pub struct Tzinfo {
     /// Timezone name
@@ -193,6 +261,14 @@ pub struct Tzinfo {
     pub abbreviation: String,
     /// Week number
     pub week_number: i32,
+}
+
+/// Transforms the Tzinfo struct to a JSON string
+#[cfg(feature = "json")]
+impl Tzinfo {
+    pub fn to_json(&self) -> Result<String, serde_json::error::Error> {
+        serde_json::to_string(self)
+    }
 }
 
 impl Tz {
