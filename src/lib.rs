@@ -154,10 +154,10 @@ impl From<serde_json::error::Error> for TzError {
 
 impl error::Error for TzError {}
 
-/// This is the crate's primary structure, which contains the splitted TZfile fields and optional (features) methods.
+/// This is the crate's primary structure, which contains the splitted TZfile fields and optional (via features) methods.
 #[derive(Debug)]
 pub struct Tz {
-    /// transition times table
+    /// transition times timestamps table
     pub tzh_timecnt_data: Vec<i64>,
     /// indices for the next field
     pub tzh_timecnt_indices: Vec<u8>,
@@ -194,7 +194,7 @@ struct Header {
 pub struct TransitionTime {
     /// The UTC time and date of the transition time, BEFORE new parameters apply
     pub time: DateTime<Utc>,
-    /// The UPCOMING offset to GMT
+    /// The UPCOMING offset to UTC
     pub utc_offset: isize,
     /// Is upcoming change dst ?
     pub isdst: bool,
@@ -223,11 +223,11 @@ pub struct Tzinfo {
     pub dst_until: Option<DateTime<Utc>>,
     /// Are we in DST period ?
     pub dst_period: bool,
-    /// Normal offset to GMT, in seconds
+    /// Normal offset to UTC, in seconds
     pub raw_offset: isize,
-    /// DST offset to GMT, in seconds
+    /// DST offset to UTC, in seconds
     pub dst_offset: isize,
-    /// current offset to GMT, in +/-HH:MM
+    /// current offset to UTC, in +/-HH:MM
     #[serde(with = "offset_serializer")]
     pub utc_offset: FixedOffset,
     /// Timezone abbreviation
@@ -251,11 +251,11 @@ pub struct Tzinfo {
     pub dst_until: Option<DateTime<Utc>>,
     /// Are we in DST period ?
     pub dst_period: bool,
-    /// Normal offset to GMT, in seconds
+    /// Normal offset to UTC, in seconds
     pub raw_offset: isize,
-    /// DST offset to GMT, in seconds
+    /// DST offset to UTC, in seconds
     pub dst_offset: isize,
-    /// current offset to GMT, in +/-HH:MM
+    /// current offset to UTC, in +/-HH:MM
     pub utc_offset: FixedOffset,
     /// Timezone abbreviation
     pub abbreviation: String,
