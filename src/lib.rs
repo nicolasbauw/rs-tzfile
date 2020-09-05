@@ -405,12 +405,8 @@ mod tests {
         ];
         #[cfg(not(windows))]
         let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap();
-        assert_eq!(
-            tz.get_tt(Some(2019)).unwrap(),
-            tt
-        );
         #[cfg(windows)]
-        let tt = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
+        let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
         assert_eq!(
             tz.get_tt(Some(2019)).unwrap(),
             tt
@@ -435,12 +431,8 @@ mod tests {
         ];
         #[cfg(not(windows))]
         let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
-        assert_eq!(
-            tz.get_tt(None).unwrap(),
-            tt
-        );
         #[cfg(windows)]
-        let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix");
+        let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix").unwrap();
         assert_eq!(
             tz.get_tt(None).unwrap(),
             tt
