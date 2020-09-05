@@ -5,7 +5,7 @@
 //!
 //! Here is an example:
 //!```rust
-//! use libtzfile::Tz
+//! use libtzfile::Tz;
 //! fn main() {
 //!     println!("{:?}", Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
 //! }
@@ -183,8 +183,7 @@ impl Tz {
     /// If year is Some(0), returns current year's transition times.
     /// If there's no transition time for selected year, returns the last occured transition time to see selected zone's applying parameters.
     /// If no year (None) is specified, returns all time changes recorded in the TZfile .
-    pub fn get_tt(&self, y: Option<i32>) -> Result<Vec<TransitionTime>, TzError> {
-        // low-level parse of tzfile
+    pub fn transition_times(&self, y: Option<i32>) -> Result<Vec<TransitionTime>, TzError> {
         let timezone = self;
 
         // used to store transition time indices
@@ -267,8 +266,8 @@ impl Tz {
 
     #[cfg(any(feature = "parse", feature = "json"))]
     /// Returns convenient data about a timezone for current date and time.
-    pub fn get_zoneinfo(&self) -> Result<Tzinfo, TzError> {
-        let parsedtimechanges = self.get_tt(Some(0))?;
+    pub fn zoneinfo(&self) -> Result<Tzinfo, TzError> {
+        let parsedtimechanges = self.transition_times(Some(0))?;
         let d = Utc::now();
         if parsedtimechanges.len() == 2 {
             // 2 times changes the same year ? DST observed
@@ -553,7 +552,7 @@ mod tests {
         let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap();
         #[cfg(windows)]
         let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
-        assert_eq!(tz.get_tt(Some(2019)).unwrap(), tt);
+        assert_eq!(tz.transition_times(Some(2019)).unwrap(), tt);
     }
 
     #[cfg(feature = "parse")]
@@ -631,16 +630,16 @@ mod tests {
         let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
         #[cfg(windows)]
         let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix").unwrap();
-        assert_eq!(tz.get_tt(None).unwrap(), tt);
+        assert_eq!(tz.transition_times(None).unwrap(), tt);
     }
 
     #[cfg(feature = "parse")]
     #[test]
     fn zoneinfo() {
         #[cfg(not(windows))]
-        let tztest = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().get_zoneinfo().unwrap();
+        let tztest = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap();
         #[cfg(windows)]
-        let tztest = (Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap()).get_zoneinfo().unwrap();
+        let tztest = (Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap()).zoneinfo().unwrap();
         assert_eq!(tztest.timezone, String::from("Europe/Paris"));
         assert_eq!(tztest.raw_offset, 3600);
         assert_eq!(tztest.dst_offset, 7200);
