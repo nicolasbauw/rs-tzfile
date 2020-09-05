@@ -15,7 +15,7 @@
 //! Tz { tzh_timecnt_data: [-2717643600, -1633273200, -1615132800, -1601823600, -1583683200, -880210800, -820519140, -812653140, -796845540, -84380400, -68659200], tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2], tzh_typecnt: [Ttinfo { tt_gmtoff: -26898, tt_isdst: 0, tt_abbrind: 0 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 2 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 //! ```
 //! 
-//! With the parse feature enabled, you have access to useful methods.
+//! With the parse feature enabled, you have access to additional methods.
 //! For instance, to display 2020 DST transitions in France, you can use the transition_times method:
 //! 
 //! ```rust
@@ -148,7 +148,7 @@ struct Header {
 }
 
 #[cfg(any(feature = "parse", feature = "json"))]
-/// The TransitionTime struct contains one transition time (parse feature).
+/// The TransitionTime struct contains one transition time (available with the parse feature).
 #[derive(Debug, PartialEq)]
 pub struct TransitionTime {
     /// The UTC time and date of the transition time, BEFORE new parameters apply
@@ -161,7 +161,7 @@ pub struct TransitionTime {
     pub abbreviation: String,
 }
 
-/// Convenient and human-readable informations about a timezone (parse feature).
+/// Convenient and human-readable informations about a timezone (available with the parse feature).
 /// Some explanations about the offset fields:
 /// - raw_offset : the "normal" offset to utc, in seconds
 /// - dst_offset : the offset to utc during daylight saving time, in seconds
