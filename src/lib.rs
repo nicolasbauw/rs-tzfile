@@ -101,7 +101,7 @@ pub struct Tz {
     name: String,
 }
 
-/// This structure (contained in the Tz struct) contains UTC offset, daylight saving time, abbreviation index.
+/// This sub-structure of the Tz struct is part of the TZfile format specifications, and contains UTC offset, daylight saving time, abbreviation index.
 #[derive(Debug)]
 pub struct Ttinfo {
     pub tt_gmtoff: isize,
@@ -134,7 +134,7 @@ pub struct TransitionTime {
     pub abbreviation: String,
 }
 
-/// Convenient and human-readable informations about a timezone.
+/// Convenient and human-readable informations about a timezone (parse feature).
 #[cfg(any(feature = "parse", feature = "json"))]
 #[derive(Debug)]
 pub struct Tzinfo {
