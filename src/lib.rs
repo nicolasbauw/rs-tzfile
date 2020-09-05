@@ -56,6 +56,8 @@
 //! {"timezone":"Europe/Paris","utc_datetime":"2020-09-05T18:04:50.546668500Z","datetime":"2020-09-05T20:04:50.546668500+02:00","dst_from":"2020-03-29T01:00:00Z","dst_until":"2020-10-25T01:00:00Z","dst_period":true,"raw_offset":3600,"dst_offset":7200,"utc_offset":"+02:00","abbreviation":"CEST","week_number":36}
 //!```
 //! 
+//! This last method and feature is used for instance in my [world time API](https://github.com/nicolasbauw/world-time-api).
+//! 
 //! The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html) (ubuntu).
 
 use byteorder::{ByteOrder, BE};
