@@ -2,7 +2,7 @@
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
 //! For higher level parsing, see [my high-level parsing library](https://crates.io/crates/tzparse).
-//! 
+//!
 //! Here is an example:
 //!```text
 //! fn main() {
@@ -16,13 +16,13 @@
 //! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 2 },
 //! Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 //!```
-//! 
+//!
 //! The tests (cargo test) are written to match [2020a version of timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 use byteorder::{ByteOrder, BE};
-use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
 #[cfg(any(feature = "parse", feature = "json"))]
-use chrono::{DateTime, Utc, TimeZone};
+use chrono::{DateTime, TimeZone, Utc};
+use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
 
 // TZif magic four bytes
 const MAGIC: u32 = 0x545A6966;
@@ -44,7 +44,7 @@ pub enum TzError {
     // Parsing Error
     ParseError,
     // Empty String
-    EmptyString
+    EmptyString,
 }
 
 impl fmt::Display for TzError {
@@ -57,7 +57,7 @@ impl fmt::Display for TzError {
             TzError::UnsupportedFormat => "Only V2 format is supported",
             TzError::NoData => "No data matched the request",
             TzError::ParseError => "Parsing error",
-            TzError::EmptyString => "Empty string"
+            TzError::EmptyString => "Empty string",
         })
     }
 }
@@ -99,6 +99,8 @@ pub struct Tz {
     pub tzh_typecnt: Vec<Ttinfo>,
     /// abbreviations table
     pub tz_abbr: Vec<String>,
+    // Zone name
+    name: String,
 }
 
 /// a struct containing UTC offset, daylight saving time, abbreviation index
@@ -142,7 +144,7 @@ impl Tz {
         // Parses TZfile header
         let header = Tz::parse_header(&buf)?;
         // Parses data
-        Tz::parse_data(&buf, header)
+        Tz::parse_data(&buf, header, tz)
     }
 
     #[cfg(any(feature = "parse", feature = "json"))]
@@ -150,10 +152,7 @@ impl Tz {
     /// If year is Some(0), returns current year's transition times.
     /// If there's no transition time for selected year, returns the last occured transition time to see selected zone's applying parameters.
     /// If no year (None) is specified, returns all time changes recorded in the TZfile .
-    pub fn get_tt(
-        &self,
-        y: Option<i32>,
-    ) -> Result<Vec<TransitionTime>, TzError> {
+    pub fn get_tt(&self, y: Option<i32>) -> Result<Vec<TransitionTime>, TzError> {
         // low-level parse of tzfile
         let timezone = self;
 
@@ -178,7 +177,8 @@ impl Tz {
             let yearbeg = Utc.ymd(y, 1, 1).and_hms(0, 0, 0).timestamp();
             let yearend = Utc.ymd(y, 12, 31).and_hms(0, 0, 0).timestamp();
             for t in 0..timezone.tzh_timecnt_data.len() {
-                if timezone.tzh_timecnt_data[t] > yearbeg && timezone.tzh_timecnt_data[t] < yearend {
+                if timezone.tzh_timecnt_data[t] > yearbeg && timezone.tzh_timecnt_data[t] < yearend
+                {
                     timechanges.push(t);
                 }
                 if timezone.tzh_timecnt_data[t] < yearbeg {
@@ -189,27 +189,45 @@ impl Tz {
             // No year requested ? stores all transition times
             for t in 0..timezone.tzh_timecnt_data.len() {
                 /* patch : chrono panics on an overflowing timestamp, and a 0xF800000000000000 timestamp is present in some Debian 10 TZfiles.*/
-                if timezone.tzh_timecnt_data[t] != -576460752303423488 { timechanges.push(t) };
+                if timezone.tzh_timecnt_data[t] != -576460752303423488 {
+                    timechanges.push(t)
+                };
             }
         }
 
         // Populating returned Vec<Tt>
         if timechanges.len() != 0 {
             for t in 0..timechanges.len() {
-                let tc = TransitionTime{
+                let tc = TransitionTime {
                     time: Utc.timestamp(timezone.tzh_timecnt_data[timechanges[t]], 0),
-                    gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_gmtoff,
-                    isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_isdst == 1,
-                    abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[timechanges[t]] as usize].tt_abbrind as usize].to_string(),
+                    gmtoff: timezone.tzh_typecnt
+                        [timezone.tzh_timecnt_indices[timechanges[t]] as usize]
+                        .tt_gmtoff,
+                    isdst: timezone.tzh_typecnt
+                        [timezone.tzh_timecnt_indices[timechanges[t]] as usize]
+                        .tt_isdst
+                        == 1,
+                    abbreviation: timezone.tz_abbr[timezone.tzh_typecnt
+                        [timezone.tzh_timecnt_indices[timechanges[t]] as usize]
+                        .tt_abbrind as usize]
+                        .to_string(),
                 };
                 parsedtimechanges.push(tc);
             }
         } else {
-            let tc = TransitionTime{
+            let tc = TransitionTime {
                 time: Utc.timestamp(timezone.tzh_timecnt_data[nearest_timechange], 0),
-                gmtoff: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_gmtoff,
-                isdst: timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_isdst == 1,
-                abbreviation: timezone.tz_abbr[timezone.tzh_typecnt[timezone.tzh_timecnt_indices[nearest_timechange] as usize].tt_abbrind as usize].to_string(),
+                gmtoff: timezone.tzh_typecnt
+                    [timezone.tzh_timecnt_indices[nearest_timechange] as usize]
+                    .tt_gmtoff,
+                isdst: timezone.tzh_typecnt
+                    [timezone.tzh_timecnt_indices[nearest_timechange] as usize]
+                    .tt_isdst
+                    == 1,
+                abbreviation: timezone.tz_abbr[timezone.tzh_typecnt
+                    [timezone.tzh_timecnt_indices[nearest_timechange] as usize]
+                    .tt_abbrind as usize]
+                    .to_string(),
             };
             parsedtimechanges.push(tc);
         }
@@ -219,10 +237,10 @@ impl Tz {
     fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
         let magic = BE::read_u32(&buffer[0x00..=0x03]);
         if magic != MAGIC {
-            return Err(TzError::InvalidMagic)
+            return Err(TzError::InvalidMagic);
         }
         if buffer[4] != 50 {
-            return Err(TzError::UnsupportedFormat)
+            return Err(TzError::UnsupportedFormat);
         }
         let tzh_ttisgmtcnt = BE::read_i32(&buffer[0x14..=0x17]) as usize;
         let tzh_ttisstdcnt = BE::read_i32(&buffer[0x18..=0x1B]) as usize;
@@ -231,26 +249,25 @@ impl Tz {
         let tzh_typecnt = BE::read_i32(&buffer[0x24..=0x27]) as usize;
         let tzh_charcnt = BE::read_i32(&buffer[0x28..=0x2b]) as usize;
         // V2 format data start
-        let s: usize =
-            tzh_timecnt * 5 +
-            tzh_typecnt * 6 +
-            tzh_leapcnt * 8 +
-            tzh_charcnt +
-            tzh_ttisstdcnt +
-            tzh_ttisgmtcnt +
-            44;
+        let s: usize = tzh_timecnt * 5
+            + tzh_typecnt * 6
+            + tzh_leapcnt * 8
+            + tzh_charcnt
+            + tzh_ttisstdcnt
+            + tzh_ttisgmtcnt
+            + 44;
         Ok(Header {
-            tzh_ttisgmtcnt: BE::read_i32(&buffer[s+0x14..=s+0x17]) as usize,
-            tzh_ttisstdcnt: BE::read_i32(&buffer[s+0x18..=s+0x1B]) as usize,
-            tzh_leapcnt: BE::read_i32(&buffer[s+0x1C..=s+0x1F]) as usize,
-            tzh_timecnt: BE::read_i32(&buffer[s+0x20..=s+0x23]) as usize,
-            tzh_typecnt: BE::read_i32(&buffer[s+0x24..=s+0x27]) as usize,
-            tzh_charcnt: BE::read_i32(&buffer[s+0x28..=s+0x2b]) as usize,
-            v2_header_start: s
+            tzh_ttisgmtcnt: BE::read_i32(&buffer[s + 0x14..=s + 0x17]) as usize,
+            tzh_ttisstdcnt: BE::read_i32(&buffer[s + 0x18..=s + 0x1B]) as usize,
+            tzh_leapcnt: BE::read_i32(&buffer[s + 0x1C..=s + 0x1F]) as usize,
+            tzh_timecnt: BE::read_i32(&buffer[s + 0x20..=s + 0x23]) as usize,
+            tzh_typecnt: BE::read_i32(&buffer[s + 0x24..=s + 0x27]) as usize,
+            tzh_charcnt: BE::read_i32(&buffer[s + 0x28..=s + 0x2b]) as usize,
+            v2_header_start: s,
         })
     }
 
-    fn parse_data(buffer: &Vec<u8>, header: Header) -> Result<Tz, TzError> {
+    fn parse_data(buffer: &Vec<u8>, header: Header, filename: &str) -> Result<Tz, TzError> {
         // Calculates fields lengths and indexes (Version 2 format)
         let tzh_timecnt_len: usize = header.tzh_timecnt * 9;
         let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
@@ -262,8 +279,8 @@ impl Tz {
         let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
 
         // Extracting data fields
-        let tzh_timecnt_data: Vec<i64> = buffer
-            [HEADER_LEN + header.v2_header_start..HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8]
+        let tzh_timecnt_data: Vec<i64> = buffer[HEADER_LEN + header.v2_header_start
+            ..HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8]
             .chunks_exact(8)
             .map(|tt| BE::read_i64(tt))
             .collect();
@@ -292,13 +309,35 @@ impl Tz {
 
         let mut tz_abbr: Vec<String> = abbrs.split("\u{0}").map(|st| st.to_string()).collect();
         // Removes last empty char
-        if tz_abbr.pop().is_none() { return Err(TzError::EmptyString) };
+        if tz_abbr.pop().is_none() {
+            return Err(TzError::EmptyString);
+        };
+
+        // Generating zone name (ie. Europe/Paris) from requested file name
+        let mut timezone = String::new();
+        #[cfg(not(windows))]
+        let mut tz: Vec<&str> = filename.split("/").collect();
+        #[cfg(windows)]
+        let mut tz: Vec<&str> = filename.split("\\").collect();
+        // To prevent crash (case of requested directory separator unmatching OS separator)
+        if tz.len() < 3 {
+            return Err(TzError::InvalidTimezone);
+        }
+        for _ in 0..(tz.len()) - 2 {
+            tz.remove(0);
+        }
+        if tz[0] != "zoneinfo" {
+            timezone.push_str(tz[0]);
+            timezone.push_str("/");
+        }
+        timezone.push_str(tz[1]);
 
         Ok(Tz {
             tzh_timecnt_data: tzh_timecnt_data,
             tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
             tzh_typecnt: tzh_typecnt,
             tz_abbr: tz_abbr,
+            name: timezone
         })
     }
 
@@ -325,7 +364,15 @@ mod tests {
     #[test]
     fn parse_hdr() {
         let buf = Tz::read(TIMEZONE).unwrap();
-        let amph = Header { tzh_ttisgmtcnt: 4, tzh_ttisstdcnt: 4, tzh_leapcnt: 0, tzh_timecnt: 11, tzh_typecnt: 4, tzh_charcnt: 16, v2_header_start: 147 };
+        let amph = Header {
+            tzh_ttisgmtcnt: 4,
+            tzh_ttisstdcnt: 4,
+            tzh_leapcnt: 0,
+            tzh_timecnt: 11,
+            tzh_typecnt: 4,
+            tzh_charcnt: 16,
+            v2_header_start: 147,
+        };
         assert_eq!(Tz::parse_header(&buf).unwrap(), amph);
     }
 
@@ -338,25 +385,27 @@ mod tests {
     #[test]
     fn parse_timedata() {
         let amph: Vec<i64> = vec![
-                -2717643600,
-                -1633273200,
-                -1615132800,
-                -1601823600,
-                -1583683200,
-                -880210800,
-                -820519140,
-                -812653140,
-                -796845540,
-                -84380400,
-                -68659200
-            ];
+            -2717643600,
+            -1633273200,
+            -1615132800,
+            -1601823600,
+            -1583683200,
+            -880210800,
+            -820519140,
+            -812653140,
+            -796845540,
+            -84380400,
+            -68659200,
+        ];
         assert_eq!(Tz::new(TIMEZONE).unwrap().tzh_timecnt_data, amph);
     }
 
     #[test]
     fn parse_ttgmtoff() {
         let amph: [isize; 4] = [-26898, -21600, -25200, -21600];
-        let c: Vec<isize> = Tz::new(TIMEZONE).unwrap().tzh_typecnt
+        let c: Vec<isize> = Tz::new(TIMEZONE)
+            .unwrap()
+            .tzh_typecnt
             .iter()
             .map(|ttinfo| ttinfo.tt_gmtoff)
             .collect();
@@ -364,7 +413,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_abbr () {
+    fn parse_abbr() {
         let abbr: Vec<String> = vec!["LMT", "MDT", "MST", "MWT"]
             .iter()
             .map(|x| x.to_string())
@@ -386,18 +435,24 @@ mod tests {
         dbg!(Tz::new(timezone).unwrap());
     }
 
+    #[test]
+    fn zonename() {
+        let z = "America/Phoenix";
+        assert_eq!(Tz::new(TIMEZONE).unwrap().name, z);
+    }
+
     // cargo test --features=parse
     #[cfg(feature = "parse")]
     #[test]
     fn partial_timechanges() {
         let tt = vec![
-            TransitionTime{
+            TransitionTime {
                 time: Utc.ymd(2019, 3, 31).and_hms(1, 0, 0),
                 gmtoff: 7200,
                 isdst: true,
                 abbreviation: String::from("CEST"),
             },
-            TransitionTime{
+            TransitionTime {
                 time: Utc.ymd(2019, 10, 27).and_hms(1, 0, 0),
                 gmtoff: 3600,
                 isdst: false,
@@ -408,35 +463,84 @@ mod tests {
         let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap();
         #[cfg(windows)]
         let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
-        assert_eq!(
-            tz.get_tt(Some(2019)).unwrap(),
-            tt
-        );
+        assert_eq!(tz.get_tt(Some(2019)).unwrap(), tt);
     }
 
     #[cfg(feature = "parse")]
     #[test]
     fn total_timechanges() {
         let tt = vec![
-            TransitionTime { time: Utc.ymd(1883, 11, 18).and_hms(19, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
-            TransitionTime { time: Utc.ymd(1918, 03, 31).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MDT") },
-            TransitionTime { time: Utc.ymd(1918, 10, 27).and_hms(8, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
-            TransitionTime { time: Utc.ymd(1919, 03, 30).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MDT") },
-            TransitionTime { time: Utc.ymd(1919, 10, 26).and_hms(8, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
-            TransitionTime { time: Utc.ymd(1942, 02, 09).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MWT") },
-            TransitionTime { time: Utc.ymd(1944, 01, 01).and_hms(6, 1, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
-            TransitionTime { time: Utc.ymd(1944, 04, 01).and_hms(7, 1, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MWT") },
-            TransitionTime { time: Utc.ymd(1944, 10, 01).and_hms(6, 1, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") },
-            TransitionTime { time: Utc.ymd(1967, 04, 30).and_hms(9, 0, 0), gmtoff: -21600, isdst: true, abbreviation: String::from("MDT") },
-            TransitionTime { time: Utc.ymd(1967, 10, 29).and_hms(8, 0, 0), gmtoff: -25200, isdst: false, abbreviation: String::from("MST") }
+            TransitionTime {
+                time: Utc.ymd(1883, 11, 18).and_hms(19, 0, 0),
+                gmtoff: -25200,
+                isdst: false,
+                abbreviation: String::from("MST"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1918, 03, 31).and_hms(9, 0, 0),
+                gmtoff: -21600,
+                isdst: true,
+                abbreviation: String::from("MDT"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1918, 10, 27).and_hms(8, 0, 0),
+                gmtoff: -25200,
+                isdst: false,
+                abbreviation: String::from("MST"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1919, 03, 30).and_hms(9, 0, 0),
+                gmtoff: -21600,
+                isdst: true,
+                abbreviation: String::from("MDT"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1919, 10, 26).and_hms(8, 0, 0),
+                gmtoff: -25200,
+                isdst: false,
+                abbreviation: String::from("MST"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1942, 02, 09).and_hms(9, 0, 0),
+                gmtoff: -21600,
+                isdst: true,
+                abbreviation: String::from("MWT"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1944, 01, 01).and_hms(6, 1, 0),
+                gmtoff: -25200,
+                isdst: false,
+                abbreviation: String::from("MST"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1944, 04, 01).and_hms(7, 1, 0),
+                gmtoff: -21600,
+                isdst: true,
+                abbreviation: String::from("MWT"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1944, 10, 01).and_hms(6, 1, 0),
+                gmtoff: -25200,
+                isdst: false,
+                abbreviation: String::from("MST"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1967, 04, 30).and_hms(9, 0, 0),
+                gmtoff: -21600,
+                isdst: true,
+                abbreviation: String::from("MDT"),
+            },
+            TransitionTime {
+                time: Utc.ymd(1967, 10, 29).and_hms(8, 0, 0),
+                gmtoff: -25200,
+                isdst: false,
+                abbreviation: String::from("MST"),
+            },
         ];
         #[cfg(not(windows))]
         let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
         #[cfg(windows)]
         let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix").unwrap();
-        assert_eq!(
-            tz.get_tt(None).unwrap(),
-            tt
-        );
+        assert_eq!(tz.get_tt(None).unwrap(), tt);
     }
 }
