@@ -127,7 +127,7 @@ pub struct TransitionTime {
     /// The UTC time and date of the transition time, BEFORE new parameters apply
     pub time: DateTime<Utc>,
     /// The UPCOMING offset to GMT
-    pub gmtoff: isize,
+    pub utc_offset: isize,
     /// Is upcoming change dst ?
     pub isdst: bool,
     /// TZ abbreviation of upcoming change
@@ -230,7 +230,7 @@ impl Tz {
             for t in 0..timechanges.len() {
                 let tc = TransitionTime {
                     time: Utc.timestamp(timezone.tzh_timecnt_data[timechanges[t]], 0),
-                    gmtoff: timezone.tzh_typecnt
+                    utc_offset: timezone.tzh_typecnt
                         [timezone.tzh_timecnt_indices[timechanges[t]] as usize]
                         .tt_gmtoff,
                     isdst: timezone.tzh_typecnt
@@ -247,7 +247,7 @@ impl Tz {
         } else {
             let tc = TransitionTime {
                 time: Utc.timestamp(timezone.tzh_timecnt_data[nearest_timechange], 0),
-                gmtoff: timezone.tzh_typecnt
+                utc_offset: timezone.tzh_typecnt
                     [timezone.tzh_timecnt_indices[nearest_timechange] as usize]
                     .tt_gmtoff,
                 isdst: timezone.tzh_typecnt
@@ -274,9 +274,9 @@ impl Tz {
             // Are we in a dst period ? true / false
             let dst = d > parsedtimechanges[0].time && d < parsedtimechanges[1].time;
             let utc_offset = if dst == true {
-                FixedOffset::east(parsedtimechanges[0].gmtoff as i32)
+                FixedOffset::east(parsedtimechanges[0].utc_offset as i32)
             } else {
-                FixedOffset::east(parsedtimechanges[1].gmtoff as i32)
+                FixedOffset::east(parsedtimechanges[1].utc_offset as i32)
             };
             Ok(Tzinfo {
                 timezone: (self.name).clone(),
@@ -290,8 +290,8 @@ impl Tz {
                 dst_from: Some(parsedtimechanges[0].time),
                 dst_until: Some(parsedtimechanges[1].time),
                 dst_period: dst,
-                raw_offset: parsedtimechanges[1].gmtoff,
-                dst_offset: parsedtimechanges[0].gmtoff,
+                raw_offset: parsedtimechanges[1].utc_offset,
+                dst_offset: parsedtimechanges[0].utc_offset,
                 utc_offset: utc_offset,
                 abbreviation: if dst == true {
                     parsedtimechanges[0].abbreviation.clone()
@@ -300,7 +300,7 @@ impl Tz {
                 },
             })
         } else if parsedtimechanges.len() == 1 {
-            let utc_offset = FixedOffset::east(parsedtimechanges[0].gmtoff as i32);
+            let utc_offset = FixedOffset::east(parsedtimechanges[0].utc_offset as i32);
             Ok(Tzinfo {
                 timezone: (self.name).clone(),
                 week_number: d
@@ -313,7 +313,7 @@ impl Tz {
                 dst_from: None,
                 dst_until: None,
                 dst_period: false,
-                raw_offset: parsedtimechanges[0].gmtoff,
+                raw_offset: parsedtimechanges[0].utc_offset,
                 dst_offset: 0,
                 utc_offset: utc_offset,
                 abbreviation: parsedtimechanges[0].abbreviation.clone(),
@@ -537,13 +537,13 @@ mod tests {
         let tt = vec![
             TransitionTime {
                 time: Utc.ymd(2019, 3, 31).and_hms(1, 0, 0),
-                gmtoff: 7200,
+                utc_offset: 7200,
                 isdst: true,
                 abbreviation: String::from("CEST"),
             },
             TransitionTime {
                 time: Utc.ymd(2019, 10, 27).and_hms(1, 0, 0),
-                gmtoff: 3600,
+                utc_offset: 3600,
                 isdst: false,
                 abbreviation: String::from("CET"),
             },
@@ -561,67 +561,67 @@ mod tests {
         let tt = vec![
             TransitionTime {
                 time: Utc.ymd(1883, 11, 18).and_hms(19, 0, 0),
-                gmtoff: -25200,
+                utc_offset: -25200,
                 isdst: false,
                 abbreviation: String::from("MST"),
             },
             TransitionTime {
                 time: Utc.ymd(1918, 03, 31).and_hms(9, 0, 0),
-                gmtoff: -21600,
+                utc_offset: -21600,
                 isdst: true,
                 abbreviation: String::from("MDT"),
             },
             TransitionTime {
                 time: Utc.ymd(1918, 10, 27).and_hms(8, 0, 0),
-                gmtoff: -25200,
+                utc_offset: -25200,
                 isdst: false,
                 abbreviation: String::from("MST"),
             },
             TransitionTime {
                 time: Utc.ymd(1919, 03, 30).and_hms(9, 0, 0),
-                gmtoff: -21600,
+                utc_offset: -21600,
                 isdst: true,
                 abbreviation: String::from("MDT"),
             },
             TransitionTime {
                 time: Utc.ymd(1919, 10, 26).and_hms(8, 0, 0),
-                gmtoff: -25200,
+                utc_offset: -25200,
                 isdst: false,
                 abbreviation: String::from("MST"),
             },
             TransitionTime {
                 time: Utc.ymd(1942, 02, 09).and_hms(9, 0, 0),
-                gmtoff: -21600,
+                utc_offset: -21600,
                 isdst: true,
                 abbreviation: String::from("MWT"),
             },
             TransitionTime {
                 time: Utc.ymd(1944, 01, 01).and_hms(6, 1, 0),
-                gmtoff: -25200,
+                utc_offset: -25200,
                 isdst: false,
                 abbreviation: String::from("MST"),
             },
             TransitionTime {
                 time: Utc.ymd(1944, 04, 01).and_hms(7, 1, 0),
-                gmtoff: -21600,
+                utc_offset: -21600,
                 isdst: true,
                 abbreviation: String::from("MWT"),
             },
             TransitionTime {
                 time: Utc.ymd(1944, 10, 01).and_hms(6, 1, 0),
-                gmtoff: -25200,
+                utc_offset: -25200,
                 isdst: false,
                 abbreviation: String::from("MST"),
             },
             TransitionTime {
                 time: Utc.ymd(1967, 04, 30).and_hms(9, 0, 0),
-                gmtoff: -21600,
+                utc_offset: -21600,
                 isdst: true,
                 abbreviation: String::from("MDT"),
             },
             TransitionTime {
                 time: Utc.ymd(1967, 10, 29).and_hms(8, 0, 0),
-                gmtoff: -25200,
+                utc_offset: -25200,
                 isdst: false,
                 abbreviation: String::from("MST"),
             },
