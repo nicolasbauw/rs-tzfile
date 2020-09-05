@@ -19,7 +19,7 @@
 
 use byteorder::{ByteOrder, BE};
 #[cfg(any(feature = "parse", feature = "json"))]
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, TimeZone, Utc, FixedOffset};
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
 
 // TZif magic four bytes
@@ -134,6 +134,34 @@ pub struct TransitionTime {
     pub abbreviation: String,
 }
 
+/// Convenient and human-readable informations about a timezone.
+#[cfg(any(feature = "parse", feature = "json"))]
+#[derive(Debug)]
+pub struct Tzinfo {
+    /// Timezone name
+    pub timezone: String,
+    /// UTC time
+    pub utc_datetime: DateTime<Utc>,
+    /// Local time
+    pub datetime: DateTime<FixedOffset>,
+    /// Start of DST period
+    pub dst_from: Option<DateTime<Utc>>,
+    /// End of DST period
+    pub dst_until: Option<DateTime<Utc>>,
+    /// Are we in DST period ?
+    pub dst_period: bool,
+    /// Normal offset to GMT, in seconds
+    pub raw_offset: isize,
+    /// DST offset to GMT, in seconds
+    pub dst_offset: isize,
+    /// current offset to GMT, in +/-HH:MM
+    pub utc_offset: FixedOffset,
+    /// Timezone abbreviation
+    pub abbreviation: String,
+    /// Week number
+    pub week_number: i32,
+}
+
 impl Tz {
     /// Creates a Tz struct from a timezone file.
     /// Example:
@@ -235,6 +263,65 @@ impl Tz {
             parsedtimechanges.push(tc);
         }
         Ok(parsedtimechanges)
+    }
+
+    #[cfg(any(feature = "parse", feature = "json"))]
+    /// Returns convenient data about a timezone for current date and time.
+    pub fn get_zoneinfo(&self) -> Result<Tzinfo, TzError> {
+        let parsedtimechanges = self.get_tt(Some(0))?;
+        let d = Utc::now();
+        if parsedtimechanges.len() == 2 {
+            // 2 times changes the same year ? DST observed
+            // Are we in a dst period ? true / false
+            let dst = d > parsedtimechanges[0].time && d < parsedtimechanges[1].time;
+            let utc_offset = if dst == true {
+                FixedOffset::east(parsedtimechanges[0].gmtoff as i32)
+            } else {
+                FixedOffset::east(parsedtimechanges[1].gmtoff as i32)
+            };
+            Ok(Tzinfo {
+                timezone: (self.name).clone(),
+                week_number: d
+                    .with_timezone(&utc_offset)
+                    .format("%V")
+                    .to_string()
+                    .parse()?,
+                utc_datetime: d,
+                datetime: d.with_timezone(&utc_offset),
+                dst_from: Some(parsedtimechanges[0].time),
+                dst_until: Some(parsedtimechanges[1].time),
+                dst_period: dst,
+                raw_offset: parsedtimechanges[1].gmtoff,
+                dst_offset: parsedtimechanges[0].gmtoff,
+                utc_offset: utc_offset,
+                abbreviation: if dst == true {
+                    parsedtimechanges[0].abbreviation.clone()
+                } else {
+                    parsedtimechanges[1].abbreviation.clone()
+                },
+            })
+        } else if parsedtimechanges.len() == 1 {
+            let utc_offset = FixedOffset::east(parsedtimechanges[0].gmtoff as i32);
+            Ok(Tzinfo {
+                timezone: (self.name).clone(),
+                week_number: d
+                    .with_timezone(&utc_offset)
+                    .format("%V")
+                    .to_string()
+                    .parse()?,
+                utc_datetime: d,
+                datetime: d.with_timezone(&utc_offset),
+                dst_from: None,
+                dst_until: None,
+                dst_period: false,
+                raw_offset: parsedtimechanges[0].gmtoff,
+                dst_offset: 0,
+                utc_offset: utc_offset,
+                abbreviation: parsedtimechanges[0].abbreviation.clone(),
+            })
+        } else {
+            Err(TzError::NoData)
+        }
     }
 
     fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
@@ -340,7 +427,7 @@ impl Tz {
             tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
             tzh_typecnt: tzh_typecnt,
             tz_abbr: tz_abbr,
-            name: timezone
+            name: timezone,
         })
     }
 
@@ -545,5 +632,17 @@ mod tests {
         #[cfg(windows)]
         let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix").unwrap();
         assert_eq!(tz.get_tt(None).unwrap(), tt);
+    }
+
+    #[cfg(feature = "parse")]
+    #[test]
+    fn zoneinfo() {
+        #[cfg(not(windows))]
+        let tztest = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().get_zoneinfo().unwrap();
+        #[cfg(windows)]
+        let tztest = (Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap()).get_zoneinfo().unwrap();
+        assert_eq!(tztest.timezone, String::from("Europe/Paris"));
+        assert_eq!(tztest.raw_offset, 3600);
+        assert_eq!(tztest.dst_offset, 7200);
     }
 }
