@@ -2,11 +2,14 @@
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
 //! For higher level parsing, you can enable the **parse** or **json** features (merged from the former [tzparse](https://crates.io/crates/tzparse) library).
+//! 
+//! In this documentation's examples, 'tzfile' is the TZfile path, for instance "/usr/share/zoneinfo/Europe/Paris".
 //!
 //! Example without any feature enabled, if you want to use your own code for higher level parsing:
 //!```rust
+//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::Tz;
-//! println!("{:?}", Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
+//! println!("{:?}", Tz::new(tzfile).unwrap());
 //!```
 //!
 //!```text
@@ -17,8 +20,9 @@
 //! For instance, to display 2020 DST transitions in France, you can use the transition_times method:
 //! 
 //! ```rust
+//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::Tz;
-//! println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().transition_times(Some(2020)).unwrap());
+//! println!("{:?}", Tz::new(tzfile).unwrap().transition_times(Some(2020)).unwrap());
 //! ```
 //! 
 //! ```text
@@ -28,8 +32,9 @@
 //! If you want more complete information about the timezone, you can use the zoneinfo method, which returns a more complete structure:
 //! 
 //! ```rust
+//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::Tz;
-//! println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap());
+//! println!("{:?}", Tz::new(tzfile).unwrap().zoneinfo().unwrap());
 //!```
 //! 
 //! ```text
@@ -38,8 +43,9 @@
 //! 
 //! This more complete structure can be transformed to json via a method of the json feature (which includes methods from the parse feature):
 //!```rust
+//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::{Tz, TzError};
-//! let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris")?.zoneinfo()?.to_json()?;
+//! let tz = Tz::new(tzfile)?.zoneinfo()?.to_json()?;
 //! println!("{}", tz);
 //! # Ok::<(), TzError>(())
 //!```
@@ -262,8 +268,9 @@ impl Tzinfo {
     /// Transforms the Tzinfo struct to a JSON string
     /// 
     ///```rust
+    /// # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
     /// use libtzfile::{Tz, TzError};
-    /// let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris")?.zoneinfo()?.to_json()?;
+    /// let tz = Tz::new(tzfile)?.zoneinfo()?.to_json()?;
     /// println!("{}", tz);
     /// # Ok::<(), TzError>(())
     ///```
@@ -280,8 +287,13 @@ impl Tz {
     /// Creates a Tz struct from a timezone file.
     ///
     /// ```rust
+    /// # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
     /// use libtzfile::Tz;
-    /// let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
+    /// let tz = Tz::new(tzfile).unwrap();
+    /// ```
+    /// 
+    ///```text
+    /// Tz { tzh_timecnt_data: [-2717643600, -1633273200, -1615132800, -1601823600, -1583683200, -880210800, -820519140, -812653140, -796845540, -84380400, -68659200], tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2], tzh_typecnt: [Ttinfo { tt_gmtoff: -26898, tt_isdst: 0, tt_abbrind: 0 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_gmtoff: -25200, tt_isdst: 0, tt_abbrind: 2 }, Ttinfo { tt_gmtoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
     /// ```
     pub fn new(tz: &str) -> Result<Tz, TzError> {
         // Reads TZfile
@@ -299,8 +311,9 @@ impl Tz {
     /// If no year (None) is specified, returns all transition times recorded in the TZfile .
     /// 
     /// ```rust
+    /// # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
     /// use libtzfile::Tz;
-    /// println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().transition_times(Some(2020)).unwrap());
+    /// println!("{:?}", Tz::new(tzfile).unwrap().transition_times(Some(2020)).unwrap());
     /// ```
     /// 
     /// ```text
@@ -390,8 +403,9 @@ impl Tz {
     #[cfg(any(feature = "parse", feature = "json"))]
     /// Returns convenient data about a timezone for current date and time.
     /// ```rust
+    /// # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
     /// use libtzfile::Tz;
-    /// println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap());
+    /// println!("{:?}", Tz::new(tzfile).unwrap().zoneinfo().unwrap());
     /// ```
     /// 
     /// ```text
