@@ -6,9 +6,7 @@
 //! Example without any feature enabled, if you want to use your own code for higher level parsing:
 //!```rust
 //! use libtzfile::Tz;
-//! fn main() {
-//!     println!("{:?}", Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
-//! }
+//! println!("{:?}", Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap());
 //!```
 //!
 //!```text
@@ -20,9 +18,7 @@
 //! 
 //! ```rust
 //! use libtzfile::Tz;
-//! fn main() {
-//!     println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().transition_times(Some(2020)).unwrap());
-//! }
+//! println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().transition_times(Some(2020)).unwrap());
 //! ```
 //! 
 //! ```text
@@ -33,9 +29,7 @@
 //! 
 //! ```rust
 //! use libtzfile::Tz;
-//! fn main() {
-//!     println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap());
-//! }
+//! println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap());
 //!```
 //! 
 //! ```text
@@ -45,11 +39,9 @@
 //! This more complete structure can be transformed to json via a method of the json feature (which includes methods from the parse feature):
 //!```rust
 //! use libtzfile::{Tz, TzError};
-//! fn main() -> Result<(), TzError> {
-//!     let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris")?.zoneinfo()?.to_json()?;
-//!     println!("{}", tz);
-//!     Ok(())
-//! }
+//! let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris")?.zoneinfo()?.to_json()?;
+//! println!("{}", tz);
+//! # Ok::<(), TzError>(())
 //!```
 //! 
 //!```text
@@ -265,9 +257,20 @@ pub struct Tzinfo {
     pub week_number: i32,
 }
 
-/// Transforms the Tzinfo struct to a JSON string
 #[cfg(feature = "json")]
 impl Tzinfo {
+    /// Transforms the Tzinfo struct to a JSON string
+    /// 
+    ///```rust
+    /// use libtzfile::{Tz, TzError};
+    /// let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris")?.zoneinfo()?.to_json()?;
+    /// println!("{}", tz);
+    /// # Ok::<(), TzError>(())
+    ///```
+    /// 
+    ///```text
+    /// {"timezone":"Europe/Paris","utc_datetime":"2020-09-05T18:04:50.546668500Z","datetime":"2020-09-05T20:04:50.546668500+02:00","dst_from":"2020-03-29T01:00:00Z","dst_until":"2020-10-25T01:00:00Z","dst_period":true,"raw_offset":3600,"dst_offset":7200,"utc_offset":"+02:00","abbreviation":"CEST","week_number":36}
+    ///```
     pub fn to_json(&self) -> Result<String, serde_json::error::Error> {
         serde_json::to_string(self)
     }
@@ -275,7 +278,7 @@ impl Tzinfo {
 
 impl Tz {
     /// Creates a Tz struct from a timezone file.
-    /// Example:
+    ///
     /// ```rust
     /// use libtzfile::Tz;
     /// let tz = Tz::new("/usr/share/zoneinfo/America/Phoenix").unwrap();
@@ -294,6 +297,15 @@ impl Tz {
     /// If year is Some(0), returns current year's transition times.
     /// If there's no transition time for selected year, returns the last occured transition time (zone's current parameters).
     /// If no year (None) is specified, returns all transition times recorded in the TZfile .
+    /// 
+    /// ```rust
+    /// use libtzfile::Tz;
+    /// println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().transition_times(Some(2020)).unwrap());
+    /// ```
+    /// 
+    /// ```text
+    /// [TransitionTime { time: 2020-03-29T01:00:00Z, utc_offset: 7200, isdst: true, abbreviation: "CEST" }, TransitionTime { time: 2020-10-25T01:00:00Z, utc_offset: 3600, isdst: false, abbreviation: "CET" }]
+    /// ```
     pub fn transition_times(&self, y: Option<i32>) -> Result<Vec<TransitionTime>, TzError> {
         let timezone = self;
 
@@ -377,6 +389,14 @@ impl Tz {
 
     #[cfg(any(feature = "parse", feature = "json"))]
     /// Returns convenient data about a timezone for current date and time.
+    /// ```rust
+    /// use libtzfile::Tz;
+    /// println!("{:?}", Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap());
+    /// ```
+    /// 
+    /// ```text
+    /// Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z, datetime: 2020-09-05T18:41:44.279502100+02:00, dst_from: Some(2020-03-29T01:00:00Z), dst_until: Some(2020-10-25T01:00:00Z), dst_period: true, raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST", week_number: 36 }
+    /// ```
     pub fn zoneinfo(&self) -> Result<Tzinfo, TzError> {
         let parsedtimechanges = self.transition_times(Some(0))?;
         let d = Utc::now();
