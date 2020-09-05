@@ -189,7 +189,7 @@ struct Header {
 }
 
 #[cfg(any(feature = "parse", feature = "json"))]
-/// The TransitionTime struct contains one transition time (available with the parse or json features).
+/// The TransitionTime struct (available with the parse or json features) contains one transition time.
 #[derive(Debug, PartialEq)]
 pub struct TransitionTime {
     /// The UTC time and date of the transition time, BEFORE new parameters apply
