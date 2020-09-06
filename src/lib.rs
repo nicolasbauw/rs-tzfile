@@ -45,7 +45,9 @@
 //!```rust
 //! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::{Tz, TzError};
-//! let tz = Tz::new(tzfile)?.zoneinfo()?.to_json()?;
+//! let tz = Tz::new(tzfile)?
+//!     .zoneinfo()?
+//!     .to_json()?;
 //! println!("{}", tz);
 //! # Ok::<(), TzError>(())
 //!```
@@ -270,7 +272,9 @@ impl Tzinfo {
     ///```rust
     /// # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
     /// use libtzfile::{Tz, TzError};
-    /// let tz = Tz::new(tzfile)?.zoneinfo()?.to_json()?;
+    /// let tz = Tz::new(tzfile)?
+    ///     .zoneinfo()?
+    ///     .to_json()?;
     /// println!("{}", tz);
     /// # Ok::<(), TzError>(())
     ///```
