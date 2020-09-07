@@ -5,7 +5,7 @@
 //! 
 //! In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 //!
-//! Without any feature enabled, one available method : new(), which returns the Tz struct:
+//! Without any feature enabled, one available method : new(), which returns a Tz struct:
 //!```rust
 //! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::Tz;

@@ -11,7 +11,7 @@ For higher level parsing, you can enable the **parse** or **json** features (mer
 
 In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 
-Without any feature enabled, one available method : new(), which returns the Tz struct:
+Without any feature enabled, one available method : new(), which returns a Tz struct:
 ```rust
 use libtzfile::Tz;
 println!("{:?}", Tz::new(tzfile).unwrap());
