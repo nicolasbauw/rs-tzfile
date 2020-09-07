@@ -3,7 +3,7 @@
 //!
 //! For higher level parsing, you can enable the **parse** or **json** features (merged from the former [tzparse](https://crates.io/crates/tzparse) library).
 //! 
-//! In this documentation's examples, 'tzfile' is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
+//! In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 //!
 //! Example without any feature enabled, if you want to use your own code for higher level parsing:
 //!```rust
