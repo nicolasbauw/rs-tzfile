@@ -1,11 +1,11 @@
-//! This library reads the system timezone information files provided by IANA and returns a Tz struct representing the TZfile
+//! This library reads the system timezone information files provided by IANA and returns a Tz struct containing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
 //! For higher level parsing, you can enable the **parse** or **json** features (merged from the former [tzparse](https://crates.io/crates/tzparse) library).
 //! 
 //! In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 //!
-//! Example without any feature enabled, if you want to use your own code for higher level parsing:
+//! Without any feature enabled, one available method : new(), which returns the Tz struct:
 //!```rust
 //! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::Tz;
