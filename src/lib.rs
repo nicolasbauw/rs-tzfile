@@ -590,10 +590,12 @@ impl Tz {
 #[cfg(test)]
 mod tests {
     use crate::*;
-    #[cfg(windows)]
+    #[cfg(target_os = "windows")]
     static TIMEZONE: &str = "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix";
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
     static TIMEZONE: &str = "/usr/share/zoneinfo/America/Phoenix";
+    #[cfg(target_os = "macos")]
+    static TIMEZONE: &str = "/Users/nicolasb/Dev/zoneinfo/America/Phoenix";
     #[test]
     fn read_file() {
         assert_eq!(Tz::read(TIMEZONE).is_ok(), true);
@@ -661,10 +663,12 @@ mod tests {
 
     #[test]
     fn parse_abbr_amsterdam() {
-        #[cfg(windows)]
+        #[cfg(target_os = "windows")]
         let timezone = "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Amsterdam";
-        #[cfg(not(windows))]
+        #[cfg(target_os = "linux")]
         let timezone = "/usr/share/zoneinfo/Europe/Amsterdam";
+        #[cfg(target_os = "macos")]
+        let timezone = "/Users/nicolasb/Dev/zoneinfo/Europe/Amsterdam";
         let abbr: Vec<String> = vec!["LMT", "NST", "AMT", "+0020", "+0120", "CET", "CEST"]
             .iter()
             .map(|x| x.to_string())
@@ -697,10 +701,12 @@ mod tests {
                 abbreviation: String::from("CET"),
             },
         ];
-        #[cfg(not(windows))]
+        #[cfg(target_os = "linux")]
         let tz = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap();
-        #[cfg(windows)]
+        #[cfg(target_os = "windows")]
         let tz = Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap();
+        #[cfg(target_os = "macos")]
+        let tz = Tz::new("/Users/nicolasb/Dev/zoneinfo/Europe/Paris").unwrap();
         assert_eq!(tz.transition_times(Some(2019)).unwrap(), tt);
     }
 
@@ -782,10 +788,12 @@ mod tests {
     #[cfg(any(feature = "parse", feature = "json"))]
     #[test]
     fn zoneinfo() {
-        #[cfg(not(windows))]
+        #[cfg(target_os = "linux")]
         let tztest = Tz::new("/usr/share/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap();
-        #[cfg(windows)]
+        #[cfg(target_os = "windows")]
         let tztest = (Tz::new("c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris").unwrap()).zoneinfo().unwrap();
+        #[cfg(target_os = "macos")]
+        let tztest = Tz::new("/Users/nicolasb/Dev/zoneinfo/Europe/Paris").unwrap().zoneinfo().unwrap();
         assert_eq!(tztest.timezone, String::from("Europe/Paris"));
         assert_eq!(tztest.raw_offset, 3600);
         assert_eq!(tztest.dst_offset, 7200);
