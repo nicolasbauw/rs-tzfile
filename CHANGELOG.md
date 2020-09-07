@@ -1,10 +1,10 @@
 # Changelog
 
-### 2.0.0 (2020-09-05)
+### 2.0.0 (2020-09-07)
 
-- [Merged] Functionality from the (no longer updated) tzparse crate 
+- [Added] Merged Functionalities from the (no longer updated) tzparse crate 
 - [Added] Error conversion for serde (json feature)
-- [Renamed] some fields, structs and functions, updated the doc accordingly
+- [Changed] Renamed some fields, structs and functions, updated the doc accordingly
 
 ### 1.1.0 (2020-06-23)
 
