@@ -4,7 +4,7 @@
 [![Current docs Version](https://docs.rs/libtzfile/badge.svg)](https://docs.rs/libtzfile)
 [![Downloads badge](https://img.shields.io/crates/d/libtzfile.svg)](https://crates.io/crates/libtzfile)
 
-This library reads the system timezone information files provided by IANA and returns a Tz struct representing the TZfile
+This library reads the system timezone information files provided by IANA and returns a Tz struct containing the TZfile
 fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 
 For higher level parsing, you can enable the **parse** or **json** features (merged from the former [tzparse](https://crates.io/crates/tzparse) library).
@@ -59,6 +59,6 @@ println!("{}", tz);
 
 This last method and feature is used for instance in my [world time API](https://github.com/nicolasbauw/world-time-api).
 
-The tests (cargo test --features=json) are written to match [ubuntu version](https://techblog.pagesperso-orange.fr/files/tz2020a.tar.gz) of the [2020a timezone database](https://data.iana.org/time-zones/tz-link.html).
+The tests (cargo test --features=json) are working with the [2021a timezone database](https://data.iana.org/time-zones/tz-link.html) (MacOS 11.2.2).
 
 License: GPL-3.0

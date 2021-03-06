@@ -58,7 +58,7 @@
 //! 
 //! This last method and feature is used for instance in my [world time API](https://github.com/nicolasbauw/world-time-api).
 //! 
-//! The tests (cargo test --features=json) are written to match [ubuntu version](https://techblog.pagesperso-orange.fr/files/tz2020a.tar.gz) of the [2020a timezone database](https://data.iana.org/time-zones/tz-link.html).
+//! The tests (cargo test --features=json) are working with the [2021a timezone database](https://data.iana.org/time-zones/tz-link.html) (MacOS 11.2.2).
 
 use byteorder::{ByteOrder, BE};
 #[cfg(any(feature = "parse", feature = "json"))]
