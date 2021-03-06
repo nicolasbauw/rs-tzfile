@@ -1,6 +1,6 @@
 [package]
 name = "libtzfile"
-version = "2.0.0"
+version = "2.0.1"
 authors = ["Nicolas BAUW <nbauw@hotmail.com>"]
 description = "This library provides both low and high level parsing of the IANA system timezone information files (TZIF)."
 keywords = ["timezone", "tzfiles", "TZIF", "json", "IANA"]
