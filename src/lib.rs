@@ -326,6 +326,12 @@ impl Tz {
     pub fn transition_times(&self, y: Option<i32>) -> Result<Vec<TransitionTime>, TzError> {
         let timezone = self;
 
+        // Fix for issue #3 "Calling zoneinfo on a file without transition times panics"
+        // We return a NoData error if no transition times are recorded in the TZFile.
+        if timezone.tzh_timecnt_data.len() == 0 {
+            return Err(TzError::NoData)
+        }
+
         // used to store transition time indices
         let mut timechanges = Vec::new();
         let mut nearest_timechange: usize = 0;
