@@ -797,4 +797,16 @@ mod tests {
         assert_eq!(tztest.raw_offset, 3600);
         assert_eq!(tztest.dst_offset, 7200);
     }
+
+    // cargo test --features=json
+    #[cfg(any(feature = "parse", feature = "json"))]
+    #[test]
+    fn emptytt() {
+        #[cfg(target_os = "windows")]
+        let timezone = "c:\\Users\\nbauw\\Dev\\zoneinfo\\EST";
+        #[cfg(target_family = "unix")]
+        let timezone = "/usr/share/zoneinfo/EST";
+        assert_eq!(Err(crate::TzError::NoData),
+        Tz::new(timezone).unwrap().transition_times(None));
+    }
 }
