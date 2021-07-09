@@ -3,6 +3,7 @@
 ### 2.0.2 (2021-07-08)
 
 - [Fixed] Issue #3 (Calling zoneinfo on a file without transition times panics)
+- [Added] Proper handling of TZFiles without transition times by the zoneinfo() function
 
 ### 2.0.0 (2020-09-07)
 
