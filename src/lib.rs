@@ -422,7 +422,11 @@ impl Tz {
     /// Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z, datetime: 2020-09-05T18:41:44.279502100+02:00, dst_from: Some(2020-03-29T01:00:00Z), dst_until: Some(2020-10-25T01:00:00Z), dst_period: true, raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST", week_number: 36 }
     /// ```
     pub fn zoneinfo(&self) -> Result<Tzinfo, TzError> {
-        let parsedtimechanges = self.transition_times(Some(0))?;
+        let parsedtimechanges = match self.transition_times(Some(0)) {
+            Ok(p) => p,
+            Err(TzError::NoData) => Vec::new(),
+            _ => { return Err(TzError::NoData)}
+        };
         let d = Utc::now();
         if parsedtimechanges.len() == 2 {
             // 2 times changes the same year ? DST observed
@@ -472,6 +476,26 @@ impl Tz {
                 dst_offset: 0,
                 utc_offset: utc_offset,
                 abbreviation: parsedtimechanges[0].abbreviation.clone(),
+            })
+        } else if parsedtimechanges.len() == 0 {
+            // Addition for TZFiles that does NOT contain any transition time
+            let utc_offset = FixedOffset::east(self.tzh_typecnt[0].tt_gmtoff as i32);
+            Ok(Tzinfo {
+                timezone: (self.name).clone(),
+                week_number: d
+                    .with_timezone(&utc_offset)
+                    .format("%V")
+                    .to_string()
+                    .parse()?,
+                utc_datetime: d,
+                datetime: d.with_timezone(&utc_offset),
+                dst_from: None,
+                dst_until: None,
+                dst_period: false,
+                raw_offset: self.tzh_typecnt[0].tt_gmtoff,
+                dst_offset: 0,
+                utc_offset: utc_offset,
+                abbreviation: (self.name).clone(),
             })
         } else {
             Err(TzError::NoData)
