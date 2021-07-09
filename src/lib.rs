@@ -425,7 +425,7 @@ impl Tz {
         let parsedtimechanges = match self.transition_times(Some(0)) {
             Ok(p) => p,
             Err(TzError::NoData) => Vec::new(),
-            _ => { return Err(TzError::NoData)}
+            Err(e) => { return Err(e) }
         };
         let d = Utc::now();
         if parsedtimechanges.len() == 2 {
