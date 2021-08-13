@@ -61,4 +61,4 @@ This last method and feature is used for instance in my [world time API](https:/
 
 The tests (cargo test --features=json) are working with the [2021a timezone database](https://data.iana.org/time-zones/tz-link.html) (MacOS 11.2.2).
 
-License: GPL-3.0
+License: MIT
