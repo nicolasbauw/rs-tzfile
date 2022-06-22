@@ -44,7 +44,7 @@ println!("{:?}", Tz::new(tzfile).unwrap().zoneinfo().unwrap());
 Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z, datetime: 2020-09-05T18:41:44.279502100+02:00, dst_from: Some(2020-03-29T01:00:00Z), dst_until: Some(2020-10-25T01:00:00Z), dst_period: true, raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST", week_number: 36 }
 ```
 
-This more complete structure can be transformed to json via a method of the json feature (which includes methods from the parse feature):
+This more complete structure implements the Serialize trait and can also be transformed to a json string via a method of the json feature (which includes methods from the parse feature):
 ```rust
 use libtzfile::{Tz, TzError};
 let tz = Tz::new(tzfile)?
@@ -57,8 +57,8 @@ println!("{}", tz);
 {"timezone":"Europe/Paris","utc_datetime":"2020-09-05T18:04:50.546668500Z","datetime":"2020-09-05T20:04:50.546668500+02:00","dst_from":"2020-03-29T01:00:00Z","dst_until":"2020-10-25T01:00:00Z","dst_period":true,"raw_offset":3600,"dst_offset":7200,"utc_offset":"+02:00","abbreviation":"CEST","week_number":36}
 ```
 
-This last method and feature is used for instance in my [world time API](https://github.com/nicolasbauw/world-time-api).
+This feature is used in my [world time API](https://crates.io/crates/world-time-api).
 
-The tests (cargo test --features=json) are working with the [2021a timezone database](https://data.iana.org/time-zones/tz-link.html) (MacOS 11.2.2).
+The tests (cargo test --features json) are working with the [2022a timezone database](https://data.iana.org/time-zones/tz-link.html) (MacOS 12.4).
 
 License: MIT
