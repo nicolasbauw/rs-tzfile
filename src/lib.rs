@@ -354,9 +354,9 @@ impl Tz {
                 y
             };
             // for year comparison
-            let t = NaiveTime::from_hms_opt(0, 0, 0);
-            let yb = NaiveDate::from_ymd_opt(y, 1, 1);
-            let ye = NaiveDate::from_ymd_opt(y, 12, 31);
+            let t = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
+            let yb = NaiveDate::from_ymd_opt(y, 1, 1).unwrap();
+            let ye = NaiveDate::from_ymd_opt(y, 12, 31).unwrap();
             let yearbeg = NaiveDateTime::new(yb, t).timestamp();
             let yearend = NaiveDateTime::new(ye, t).timestamp();
             for t in 0..timezone.tzh_timecnt_data.len() {
