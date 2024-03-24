@@ -49,7 +49,7 @@ fn parse_timedata() {
 
 #[test]
 fn parse_ttgmtoff() {
-    let amph: [isize; 4] = [-26898, -21600, -25200, -21600];
+    let amph: [isize; 5] = [-26898, -21600, -25200, -21600, -25200];
     let c: Vec<isize> = Tz::new(TIMEZONE)
         .unwrap()
         .tzh_typecnt
