@@ -25,7 +25,7 @@ fn parse_hdr() {
 
 #[test]
 fn parse_indices() {
-    let amph: [u8; 11] = [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2];
+    let amph: [u8; 11] = [4, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2];
     assert_eq!(Tz::new(TIMEZONE).unwrap().tzh_timecnt_indices, amph);
 }
 
