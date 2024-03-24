@@ -94,13 +94,13 @@ fn zonename() {
 fn partial_timechanges() {
     let tt = vec![
         TransitionTime {
-            time: Utc.ymd(2019, 3, 31).and_hms(1, 0, 0),
+            time: Utc.with_ymd_and_hms(2019, 3, 31, 1, 0, 0).unwrap(),
             utc_offset: 7200,
             isdst: true,
             abbreviation: String::from("CEST"),
         },
         TransitionTime {
-            time: Utc.ymd(2019, 10, 27).and_hms(1, 0, 0),
+            time: Utc.with_ymd_and_hms(2019, 10, 27, 1, 0, 0).unwrap(),
             utc_offset: 3600,
             isdst: false,
             abbreviation: String::from("CET"),
@@ -118,67 +118,67 @@ fn partial_timechanges() {
 fn total_timechanges() {
     let tt = vec![
         TransitionTime {
-            time: Utc.ymd(1883, 11, 18).and_hms(19, 0, 0),
+            time: Utc.with_ymd_and_hms(1883, 11, 18, 19, 0, 0).unwrap(),
             utc_offset: -25200,
             isdst: false,
             abbreviation: String::from("MST"),
         },
         TransitionTime {
-            time: Utc.ymd(1918, 03, 31).and_hms(9, 0, 0),
+            time: Utc.with_ymd_and_hms(1918, 03, 31, 9, 0, 0).unwrap(),
             utc_offset: -21600,
             isdst: true,
             abbreviation: String::from("MDT"),
         },
         TransitionTime {
-            time: Utc.ymd(1918, 10, 27).and_hms(8, 0, 0),
+            time: Utc.with_ymd_and_hms(1918, 10, 27, 8, 0, 0).unwrap(),
             utc_offset: -25200,
             isdst: false,
             abbreviation: String::from("MST"),
         },
         TransitionTime {
-            time: Utc.ymd(1919, 03, 30).and_hms(9, 0, 0),
+            time: Utc.with_ymd_and_hms(1919, 03, 30, 9, 0, 0).unwrap(),
             utc_offset: -21600,
             isdst: true,
             abbreviation: String::from("MDT"),
         },
         TransitionTime {
-            time: Utc.ymd(1919, 10, 26).and_hms(8, 0, 0),
+            time: Utc.with_ymd_and_hms(1919, 10, 26, 8, 0, 0).unwrap(),
             utc_offset: -25200,
             isdst: false,
             abbreviation: String::from("MST"),
         },
         TransitionTime {
-            time: Utc.ymd(1942, 02, 09).and_hms(9, 0, 0),
+            time: Utc.with_ymd_and_hms(1942, 02, 09, 9, 0, 0).unwrap(),
             utc_offset: -21600,
             isdst: true,
             abbreviation: String::from("MWT"),
         },
         TransitionTime {
-            time: Utc.ymd(1944, 01, 01).and_hms(6, 1, 0),
+            time: Utc.with_ymd_and_hms(1944, 01, 01, 6, 1, 0).unwrap(),
             utc_offset: -25200,
             isdst: false,
             abbreviation: String::from("MST"),
         },
         TransitionTime {
-            time: Utc.ymd(1944, 04, 01).and_hms(7, 1, 0),
+            time: Utc.with_ymd_and_hms(1944, 04, 01, 7, 1, 0).unwrap(),
             utc_offset: -21600,
             isdst: true,
             abbreviation: String::from("MWT"),
         },
         TransitionTime {
-            time: Utc.ymd(1944, 10, 01).and_hms(6, 1, 0),
+            time: Utc.with_ymd_and_hms(1944, 10, 01, 6, 1, 0).unwrap(),
             utc_offset: -25200,
             isdst: false,
             abbreviation: String::from("MST"),
         },
         TransitionTime {
-            time: Utc.ymd(1967, 04, 30).and_hms(9, 0, 0),
+            time: Utc.with_ymd_and_hms(1967, 04, 30, 9, 0, 0).unwrap(),
             utc_offset: -21600,
             isdst: true,
             abbreviation: String::from("MDT"),
         },
         TransitionTime {
-            time: Utc.ymd(1967, 10, 29).and_hms(8, 0, 0),
+            time: Utc.with_ymd_and_hms(1967, 10, 29, 8, 0, 0).unwrap(),
             utc_offset: -25200,
             isdst: false,
             abbreviation: String::from("MST"),
