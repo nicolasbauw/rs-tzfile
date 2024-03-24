@@ -62,7 +62,7 @@
 
 use byteorder::{ByteOrder, BE};
 #[cfg(any(feature = "parse", feature = "json"))]
-use chrono::{DateTime, FixedOffset, TimeZone, Utc};
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 #[cfg(feature = "json")]
 use serde::Serialize;
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
@@ -354,8 +354,11 @@ impl Tz {
                 y
             };
             // for year comparison
-            let yearbeg = Utc.ymd(y, 1, 1).and_hms(0, 0, 0).timestamp();
-            let yearend = Utc.ymd(y, 12, 31).and_hms(0, 0, 0).timestamp();
+            let t = NaiveTime::from_hms_opt(0, 0, 0);
+            let yb = NaiveDate::from_ymd_opt(y, 1, 1);
+            let ye = NaiveDate::from_ymd_opt(y, 12, 31);
+            let yearbeg = NaiveDateTime::new(yb, t).timestamp();
+            let yearend = NaiveDateTime::new(ye, t).timestamp();
             for t in 0..timezone.tzh_timecnt_data.len() {
                 if timezone.tzh_timecnt_data[t] > yearbeg && timezone.tzh_timecnt_data[t] < yearend
                 {
