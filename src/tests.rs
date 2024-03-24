@@ -12,13 +12,13 @@ fn read_file() {
 fn parse_hdr() {
     let buf = Tz::read(TIMEZONE).unwrap();
     let amph = Header {
-        tzh_ttisgmtcnt: 4,
-        tzh_ttisstdcnt: 4,
+        tzh_ttisgmtcnt: 5,
+        tzh_ttisstdcnt: 5,
         tzh_leapcnt: 0,
         tzh_timecnt: 11,
-        tzh_typecnt: 4,
+        tzh_typecnt: 5,
         tzh_charcnt: 16,
-        v2_header_start: 130,
+        v2_header_start: 155,
     };
     assert_eq!(Tz::parse_header(&buf).unwrap(), amph);
 }
