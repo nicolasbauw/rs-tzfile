@@ -62,7 +62,7 @@
 
 use byteorder::{ByteOrder, BE};
 #[cfg(any(feature = "parse", feature = "json"))]
-use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
+use chrono::{DateTime, FixedOffset, TimeZone, Utc};
 #[cfg(feature = "json")]
 use serde::Serialize;
 use std::{error, fmt, fs::File, io::prelude::*, str::from_utf8};
@@ -354,11 +354,11 @@ impl Tz {
                 y
             };
             // for year comparison
-            let t = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-            let yb = NaiveDate::from_ymd_opt(y, 1, 1).unwrap();
-            let ye = NaiveDate::from_ymd_opt(y, 12, 31).unwrap();
-            let yearbeg = NaiveDateTime::new(yb, t).timestamp();
-            let yearend = NaiveDateTime::new(ye, t).timestamp();
+            let yearbeg = Utc.with_ymd_and_hms(y, 1, 1, 0, 0, 0).unwrap().timestamp();
+            let yearend = Utc
+                .with_ymd_and_hms(y, 12, 31, 0, 0, 0)
+                .unwrap()
+                .timestamp();
             for t in 0..timezone.tzh_timecnt_data.len() {
                 if timezone.tzh_timecnt_data[t] > yearbeg && timezone.tzh_timecnt_data[t] < yearend
                 {
@@ -382,7 +382,9 @@ impl Tz {
         if timechanges.len() != 0 {
             for t in 0..timechanges.len() {
                 let tc = TransitionTime {
-                    time: Utc.timestamp(timezone.tzh_timecnt_data[timechanges[t]], 0),
+                    time: Utc
+                        .timestamp_opt(timezone.tzh_timecnt_data[timechanges[t]], 0)
+                        .unwrap(),
                     utc_offset: timezone.tzh_typecnt
                         [timezone.tzh_timecnt_indices[timechanges[t]] as usize]
                         .tt_gmtoff,
@@ -399,7 +401,9 @@ impl Tz {
             }
         } else {
             let tc = TransitionTime {
-                time: Utc.timestamp(timezone.tzh_timecnt_data[nearest_timechange], 0),
+                time: Utc
+                    .timestamp_opt(timezone.tzh_timecnt_data[nearest_timechange], 0)
+                    .unwrap(),
                 utc_offset: timezone.tzh_typecnt
                     [timezone.tzh_timecnt_indices[nearest_timechange] as usize]
                     .tt_gmtoff,
@@ -440,9 +444,9 @@ impl Tz {
             // Are we in a dst period ? true / false
             let dst = d > parsedtimechanges[0].time && d < parsedtimechanges[1].time;
             let utc_offset = if dst == true {
-                FixedOffset::east(parsedtimechanges[0].utc_offset as i32)
+                FixedOffset::east_opt(parsedtimechanges[0].utc_offset as i32).unwrap()
             } else {
-                FixedOffset::east(parsedtimechanges[1].utc_offset as i32)
+                FixedOffset::east_opt(parsedtimechanges[1].utc_offset as i32).unwrap()
             };
             Ok(Tzinfo {
                 timezone: (self.name).clone(),
@@ -466,7 +470,7 @@ impl Tz {
                 },
             })
         } else if parsedtimechanges.len() == 1 {
-            let utc_offset = FixedOffset::east(parsedtimechanges[0].utc_offset as i32);
+            let utc_offset = FixedOffset::east_opt(parsedtimechanges[0].utc_offset as i32).unwrap();
             Ok(Tzinfo {
                 timezone: (self.name).clone(),
                 week_number: d
@@ -486,7 +490,7 @@ impl Tz {
             })
         } else if parsedtimechanges.len() == 0 {
             // Addition for TZFiles that does NOT contain any transition time
-            let utc_offset = FixedOffset::east(self.tzh_typecnt[0].tt_gmtoff as i32);
+            let utc_offset = FixedOffset::east_opt(self.tzh_typecnt[0].tt_gmtoff as i32).unwrap();
             Ok(Tzinfo {
                 timezone: (self.name).clone(),
                 week_number: d
