@@ -343,7 +343,7 @@ impl Tz {
         // Used to store parsed transition times
         let mut parsedtimechanges = Vec::new();
 
-        // Get and store the transition time indices for requested year
+        // Get and store the transition time indices for requested
         if y.is_some() {
             let d = Utc::now();
             let y = y.unwrap();
@@ -354,6 +354,8 @@ impl Tz {
                 y
             };
             // for year comparison
+            // We can use unwrap safely with Utc:
+            // (from Chrono doc) unwrap() is best combined with time zone types where the mapping can never fail like Utc and FixedOffset.
             let yearbeg = Utc.with_ymd_and_hms(y, 1, 1, 0, 0, 0).unwrap().timestamp();
             let yearend = Utc
                 .with_ymd_and_hms(y, 12, 31, 0, 0, 0)
