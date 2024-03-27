@@ -9,9 +9,10 @@ fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfil
 
 For higher level parsing, you can enable the **parse** or **json** features (merged from the former [tzparse](https://crates.io/crates/tzparse) library).
 
-In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
+In this documentation's examples, _tzfile_ is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 
 Without any feature enabled, one available method : new(), which returns a Tz struct:
+
 ```rust
 use libtzfile::Tz;
 println!("{:?}", Tz::new(tzfile).unwrap());
@@ -45,6 +46,7 @@ Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z,
 ```
 
 This more complete structure implements the Serialize trait and can also be transformed to a json string via a method of the json feature (which includes methods from the parse feature):
+
 ```rust
 use libtzfile::{Tz, TzError};
 let tz = Tz::new(tzfile)?
@@ -59,6 +61,6 @@ println!("{}", tz);
 
 This feature is used in my [world time API](https://crates.io/crates/world-time-api).
 
-The tests (cargo test --features json) are working with the [2022a timezone database](https://data.iana.org/time-zones/tz-link.html) (MacOS 12.4).
+The tests (cargo test --features json) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 License: MIT
