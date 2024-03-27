@@ -5,8 +5,10 @@
 {
   "lsp": {
     "rust-analyzer": {
-      "cargo": {
-        "features": ["json"]
+      "initialization_options": {
+        "cargo": {
+          "features": "all"
+        }
       }
     }
   }
