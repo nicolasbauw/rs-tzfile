@@ -1,5 +1,11 @@
 # Changelog
 
+### 3.0.0 (2024-03-27)
+
+- [Changed] Updated some methods from chrono that became deprecated
+- [Changed] Tests updated for 2024a system files
+- [Changed] Updated fields tzh_ttisgmtcnt and tt_gmtoff to tzh_ttisutcnt and tt_utoff
+
 ### 2.0.2 (2021-07-08)
 
 - [Fixed] Issue #3 (Calling zoneinfo on a file without transition times panics)
@@ -7,7 +13,7 @@
 
 ### 2.0.0 (2020-09-07)
 
-- [Added] Merged Functionalities from the (no longer updated) tzparse crate 
+- [Added] Merged Functionalities from the (no longer updated) tzparse crate
 - [Added] Error conversion for serde (json feature)
 - [Changed] Renamed some fields, structs and functions, updated the doc accordingly
 
