@@ -177,7 +177,7 @@ pub struct Tz {
 /// This sub-structure of the Tz struct is part of the TZfile format specifications, and contains UTC offset, daylight saving time, abbreviation index.
 #[derive(Debug)]
 pub struct Ttinfo {
-    pub tt_gmtoff: isize,
+    pub tt_utoff: isize,
     pub tt_isdst: u8,
     pub tt_abbrind: u8,
 }
@@ -387,7 +387,7 @@ impl Tz {
                         .unwrap(),
                     utc_offset: timezone.tzh_typecnt
                         [timezone.tzh_timecnt_indices[timechanges[t]] as usize]
-                        .tt_gmtoff,
+                        .tt_utoff,
                     isdst: timezone.tzh_typecnt
                         [timezone.tzh_timecnt_indices[timechanges[t]] as usize]
                         .tt_isdst
@@ -406,7 +406,7 @@ impl Tz {
                     .unwrap(),
                 utc_offset: timezone.tzh_typecnt
                     [timezone.tzh_timecnt_indices[nearest_timechange] as usize]
-                    .tt_gmtoff,
+                    .tt_utoff,
                 isdst: timezone.tzh_typecnt
                     [timezone.tzh_timecnt_indices[nearest_timechange] as usize]
                     .tt_isdst
@@ -490,7 +490,7 @@ impl Tz {
             })
         } else if parsedtimechanges.len() == 0 {
             // Addition for TZFiles that does NOT contain any transition time
-            let utc_offset = FixedOffset::east_opt(self.tzh_typecnt[0].tt_gmtoff as i32).unwrap();
+            let utc_offset = FixedOffset::east_opt(self.tzh_typecnt[0].tt_utoff as i32).unwrap();
             Ok(Tzinfo {
                 timezone: (self.name).clone(),
                 week_number: d
@@ -503,7 +503,7 @@ impl Tz {
                 dst_from: None,
                 dst_until: None,
                 dst_period: false,
-                raw_offset: self.tzh_typecnt[0].tt_gmtoff,
+                raw_offset: self.tzh_typecnt[0].tt_utoff,
                 dst_offset: 0,
                 utc_offset: utc_offset,
                 abbreviation: (self.name).clone(),
@@ -521,7 +521,7 @@ impl Tz {
         if buffer[4] != 50 {
             return Err(TzError::UnsupportedFormat);
         }
-        let tzh_ttisgmtcnt = BE::read_i32(&buffer[0x14..=0x17]) as usize;
+        let tzh_ttisutcnt = BE::read_i32(&buffer[0x14..=0x17]) as usize;
         let tzh_ttisstdcnt = BE::read_i32(&buffer[0x18..=0x1B]) as usize;
         let tzh_leapcnt = BE::read_i32(&buffer[0x1C..=0x1F]) as usize;
         let tzh_timecnt = BE::read_i32(&buffer[0x20..=0x23]) as usize;
@@ -533,7 +533,7 @@ impl Tz {
             + tzh_leapcnt * 8
             + tzh_charcnt
             + tzh_ttisstdcnt
-            + tzh_ttisgmtcnt
+            + tzh_ttisutcnt
             + 44;
         Ok(Header {
             tzh_ttisgmtcnt: BE::read_i32(&buffer[s + 0x14..=s + 0x17]) as usize,
@@ -579,7 +579,7 @@ impl Tz {
                     .filter(|x| *x == '\0')
                     .count();
                 Ttinfo {
-                    tt_gmtoff: BE::read_i32(&tti[0..4]) as isize,
+                    tt_utoff: BE::read_i32(&tti[0..4]) as isize,
                     tt_isdst: tti[4],
                     tt_abbrind: index as u8,
                 }
