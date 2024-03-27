@@ -12,7 +12,7 @@ fn read_file() {
 fn parse_hdr() {
     let buf = Tz::read(TIMEZONE).unwrap();
     let amph = Header {
-        tzh_ttisgmtcnt: 5,
+        tzh_ttisutcnt: 5,
         tzh_ttisstdcnt: 5,
         tzh_leapcnt: 0,
         tzh_timecnt: 11,
@@ -48,13 +48,13 @@ fn parse_timedata() {
 }
 
 #[test]
-fn parse_ttgmtoff() {
+fn parse_ttutoff() {
     let amph: [isize; 5] = [-26898, -21600, -25200, -21600, -25200];
     let c: Vec<isize> = Tz::new(TIMEZONE)
         .unwrap()
         .tzh_typecnt
         .iter()
-        .map(|ttinfo| ttinfo.tt_gmtoff)
+        .map(|ttinfo| ttinfo.tt_utoff)
         .collect();
     assert_eq!(c, amph);
 }
