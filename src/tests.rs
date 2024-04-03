@@ -4,6 +4,8 @@ use std::vec;
 static TIMEZONE: &str = "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix";
 #[cfg(target_family = "unix")]
 static TIMEZONE: &str = "/usr/share/zoneinfo/America/Phoenix";
+#[cfg(target_os = "linux")]
+use crate::tests::std::dbg;
 
 #[test]
 fn read_file() {
