@@ -70,8 +70,7 @@ mod tests;
 extern crate std;
 #[cfg(any(feature = "std", feature = "parse", feature = "json"))]
 use std::{
-    dbg, error, fmt, fs::File, io::Read, str::from_utf8, string::String, string::ToString, vec,
-    vec::Vec,
+    error, fmt, fs::File, io::Read, str::from_utf8, string::String, string::ToString, vec::Vec,
 };
 
 #[cfg(not(any(feature = "std", feature = "parse", feature = "json")))]
