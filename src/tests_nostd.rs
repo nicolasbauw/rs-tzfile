@@ -1,5 +1,7 @@
 use crate::*;
 extern crate std;
+#[cfg(target_os = "windows")]
+static TIMEZONE: &str = "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix";
 #[cfg(target_family = "unix")]
 static TIMEZONE: &str = "/usr/share/zoneinfo/America/Phoenix";
 
