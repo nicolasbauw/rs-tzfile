@@ -89,6 +89,7 @@ use serde::Serialize;
 #[cfg(feature = "json")]
 mod offset_serializer {
     use serde::Serialize;
+    use std::{format, string::String};
     fn offset_to_json(t: chrono::FixedOffset) -> String {
         format!("{:?}", t)
     }
