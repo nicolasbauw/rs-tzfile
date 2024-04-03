@@ -11,10 +11,27 @@ For higher level parsing, you can enable the **parse** or **json** features (mer
 
 In this documentation's examples, _tzfile_ is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 
-Without any feature enabled, one available method : new(), which returns a Tz struct:
+Without any feature enabled, the crate is `no_std`, and there is only one method available : `new(buf: Vec<u8>)`, which returns a Tz struct:
 
-```rust
+```
+extern crate std;
 use libtzfile::Tz;
+let buf = std::fs::read("/usr/share/zoneinfo/America/Phoenix").unwrap();
+let tz = Tz::new(buf).unwrap();
+```
+
+Note that by default, the crate is `no_std` and does not provide error conversion.
+
+With the std feature enabled, the method becomes `new(tz: &str)` : it opens the file for you and returns a Tz struct:
+
+```
+[dependencies]
+libtzfile = { version = "4.0.0", features = ["std"] }
+```
+
+```
+use libtzfile::Tz;
+let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 println!("{:?}", Tz::new(tzfile).unwrap());
 ```
 
@@ -22,11 +39,14 @@ println!("{:?}", Tz::new(tzfile).unwrap());
 Tz { tzh_timecnt_data: [-2717643600, -1633273200, -1615132800, -1601823600, -1583683200, -880210800, -820519140, -812653140, -796845540, -84380400, -68659200], tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2], tzh_typecnt: [Ttinfo { tt_utoff: -26898, tt_isdst: 0, tt_abbrind: 0 }, Ttinfo { tt_utoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_utoff: -25200, tt_isdst: 0, tt_abbrind: 2 }, Ttinfo { tt_utoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 ```
 
+With the `std` feature enabled, you can use the question mark for error conversion.
+
 With the parse or json features enabled, you have access to additional methods.
 For instance, to display 2020 DST transitions in France, you can use the transition_times method:
 
-```rust
+```
 use libtzfile::Tz;
+let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 println!("{:?}", Tz::new(tzfile).unwrap().transition_times(Some(2020)).unwrap());
 ```
 
@@ -36,8 +56,9 @@ println!("{:?}", Tz::new(tzfile).unwrap().transition_times(Some(2020)).unwrap())
 
 If you want more complete information about the timezone, you can use the zoneinfo method, which returns a more complete structure:
 
-```rust
+```
 use libtzfile::Tz;
+let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 println!("{:?}", Tz::new(tzfile).unwrap().zoneinfo().unwrap());
 ```
 
@@ -47,12 +68,14 @@ Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z,
 
 This more complete structure implements the Serialize trait and can also be transformed to a json string via a method of the json feature (which includes methods from the parse feature):
 
-```rust
+```
 use libtzfile::{Tz, TzError};
+let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 let tz = Tz::new(tzfile)?
     .zoneinfo()?
     .to_json()?;
 println!("{}", tz);
+# Ok::<(), TzError>(())
 ```
 
 ```
@@ -61,6 +84,6 @@ println!("{}", tz);
 
 This feature is used in my [world time API](https://crates.io/crates/world-time-api).
 
-The tests (cargo test --features json) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
+The tests (`cargo test` or `cargo test --features json`) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 License: MIT
