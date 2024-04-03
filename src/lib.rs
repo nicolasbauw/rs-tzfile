@@ -5,10 +5,25 @@
 //!
 //! In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 //!
-//! Without any feature enabled, one available method : new(), which returns a Tz struct:
+//! Without any feature enabled, the crate is ```no_std```, and there is only one method available : ```new(buf: Vec<u8>)```, which returns a Tz struct:
+//!
 //!```text
-//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\America\\Phoenix" } else { "/usr/share/zoneinfo/Europe/Paris" };
+//! extern crate std;
 //! use libtzfile::Tz;
+//! let buf = std::fs::read("/usr/share/zoneinfo/America/Phoenix").unwrap();
+//! let tz = Tz::new(buf).unwrap();
+//!```
+//! Note that by default, the crate is ```no_std``` and does not provide error conversion.
+//!
+//! With the std feature enabled, the method becomes ```new(tz: &str)``` : it opens the file for you and returns a Tz struct:
+//!```text
+//! [dependencies]
+//! libtzfile = { version = "4.0.0", features = ["std"] }
+//! ```
+//!
+//!```text
+//! use libtzfile::Tz;
+//! let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 //! println!("{:?}", Tz::new(tzfile).unwrap());
 //!```
 //!
@@ -20,8 +35,8 @@
 //! For instance, to display 2020 DST transitions in France, you can use the transition_times method:
 //!
 //! ```text
-//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::Tz;
+//! let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 //! println!("{:?}", Tz::new(tzfile).unwrap().transition_times(Some(2020)).unwrap());
 //! ```
 //!
@@ -32,8 +47,8 @@
 //! If you want more complete information about the timezone, you can use the zoneinfo method, which returns a more complete structure:
 //!
 //! ```text
-//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::Tz;
+//! let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 //! println!("{:?}", Tz::new(tzfile).unwrap().zoneinfo().unwrap());
 //!```
 //!
@@ -43,8 +58,8 @@
 //!
 //! This more complete structure implements the Serialize trait and can also be transformed to a json string via a method of the json feature (which includes methods from the parse feature):
 //!```text
-//! # let tzfile = if cfg!(windows) { "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Paris" } else { "/usr/share/zoneinfo/Europe/Paris" };
 //! use libtzfile::{Tz, TzError};
+//! let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
 //! let tz = Tz::new(tzfile)?
 //!     .zoneinfo()?
 //!     .to_json()?;
@@ -58,7 +73,7 @@
 //!
 //! This feature is used in my [world time API](https://crates.io/crates/world-time-api).
 //!
-//! The tests (cargo test --features json) are working with the [2022a timezone database](https://data.iana.org/time-zones/tz-link.html) (MacOS 12.4).
+//! The tests (```cargo test``` or ```cargo test --features json```) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 // Support using libtzfile without the standard library
 #![cfg_attr(not(feature = "std"), no_std)]
