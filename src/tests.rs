@@ -82,6 +82,7 @@ fn parse_abbr_amsterdam() {
     dbg!(Tz::new(timezone).unwrap());
 }
 
+#[cfg(any(feature = "parse", feature = "json"))]
 #[test]
 fn zonename() {
     let z = "America/Phoenix";

@@ -172,7 +172,7 @@ pub struct Tz {
     pub tzh_typecnt: Vec<Ttinfo>,
     /// abbreviations table
     pub tz_abbr: Vec<String>,
-    #[cfg(feature = "std")]
+    #[cfg(any(feature = "parse", feature = "json"))]
     name: String,
 }
 
@@ -381,7 +381,6 @@ impl Tz {
             tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
             tzh_typecnt,
             tz_abbr,
-            name: timezone,
         })
     }
 }
