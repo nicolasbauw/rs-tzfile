@@ -377,10 +377,10 @@ impl Tz {
         timezone.push_str(tz[1]);
 
         Ok(Tz {
-            tzh_timecnt_data: tzh_timecnt_data,
+            tzh_timecnt_data,
             tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
-            tzh_typecnt: tzh_typecnt,
-            tz_abbr: tz_abbr,
+            tzh_typecnt,
+            tz_abbr,
             name: timezone,
         })
     }
