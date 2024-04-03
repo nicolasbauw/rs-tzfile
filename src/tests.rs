@@ -70,6 +70,7 @@ fn parse_abbr() {
     assert_eq!(Tz::new(TIMEZONE).unwrap().tz_abbr, abbr);
 }
 
+#[cfg(target_os = "linux")]
 #[test]
 fn parse_abbr_amsterdam() {
     #[cfg(target_os = "windows")]
