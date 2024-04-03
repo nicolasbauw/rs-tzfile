@@ -78,7 +78,7 @@
 //! The tests (```cargo test``` or ```cargo test --features json```) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 // Support using libtzfile without the standard library
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(any(feature = "std", feature = "parse", feature = "json")), no_std)]
 
 #[cfg(any(feature = "std", feature = "parse", feature = "json"))]
 #[cfg(test)]
