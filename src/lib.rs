@@ -5,15 +5,15 @@
 //! libtzfile = { version = "3.1.0", default-features = false }
 //! ```
 //!
-//! Without any feature enabled, the crate is ```no_std```, and the ```new(buf: Vec<u8>)``` method returns a Tz struct containing the TZfile
+//! With ```default-features = false```, the crate is ```no_std```, and the ```new(buf: Vec<u8>)``` method returns a Tz struct containing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
+//!```text
+//! [dependencies]
+//! libtzfile = "3.1.0"
+//! ```
+//!
 //! The default feature is ```std```, the ```new(tz: &str)``` method then requires the filename and opens this file for you.
-//!
-//! For higher level parsing, you can enable the **parse** or **json** features.
-//!
-//! In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
-//!
 //!
 //!```text
 //! use libtzfile::Tz;
@@ -25,7 +25,7 @@
 //! Tz { tzh_timecnt_data: [-2717643600, -1633273200, -1615132800, -1601823600, -1583683200, -880210800, -820519140, -812653140, -796845540, -84380400, -68659200], tzh_timecnt_indices: [2, 1, 2, 1, 2, 3, 2, 3, 2, 1, 2], tzh_typecnt: [Ttinfo { tt_utoff: -26898, tt_isdst: 0, tt_abbrind: 0 }, Ttinfo { tt_utoff: -21600, tt_isdst: 1, tt_abbrind: 1 }, Ttinfo { tt_utoff: -25200, tt_isdst: 0, tt_abbrind: 2 }, Ttinfo { tt_utoff: -21600, tt_isdst: 1, tt_abbrind: 3 }], tz_abbr: ["LMT", "MDT", "MST", "MWT"] }
 //! ```
 //!
-//! With the parse or json features enabled, you have access to additional methods.
+//! For higher level parsing, you can enable the **parse** or **json** features.
 //! For instance, to display 2020 DST transitions in France, you can use the transition_times method:
 //!
 //! ```text
@@ -50,7 +50,7 @@
 //! Tzinfo { timezone: "Europe/Paris", utc_datetime: 2020-09-05T16:41:44.279502100Z, datetime: 2020-09-05T18:41:44.279502100+02:00, dst_from: Some(2020-03-29T01:00:00Z), dst_until: Some(2020-10-25T01:00:00Z), dst_period: true, raw_offset: 3600, dst_offset: 7200, utc_offset: +02:00, abbreviation: "CEST", week_number: 36 }
 //! ```
 //!
-//! This more complete structure implements the Serialize trait and can also be transformed to a json string via a method of the json feature (which includes methods from the parse feature):
+//! This more complete structure implements the Serialize trait and can be transformed to a json string via a method of the json feature (which includes methods from the parse feature):
 //!```text
 //! use libtzfile::{Tz, TzError};
 //! let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
@@ -58,7 +58,6 @@
 //!     .zoneinfo()?
 //!     .to_json()?;
 //! println!("{}", tz);
-//! # Ok::<(), TzError>(())
 //!```
 //!
 //!```text
@@ -432,89 +431,6 @@ impl Tz {
         })
     }
 
-    #[cfg(any(feature = "parse", feature = "json"))]
-    fn parse_data(buffer: &Vec<u8>, header: Header, filename: &str) -> Result<Tz, TzError> {
-        // Calculates fields lengths and indexes (Version 2 format)
-        let tzh_timecnt_len: usize = header.tzh_timecnt * 9;
-        let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
-        let tzh_leapcnt_len: usize = header.tzh_leapcnt * 12;
-        let tzh_charcnt_len: usize = header.tzh_charcnt;
-        let tzh_timecnt_end: usize = HEADER_LEN + header.v2_header_start + tzh_timecnt_len;
-        let tzh_typecnt_end: usize = tzh_timecnt_end + tzh_typecnt_len;
-        let tzh_leapcnt_end: usize = tzh_typecnt_end + tzh_leapcnt_len;
-        let tzh_charcnt_end: usize = tzh_leapcnt_end + tzh_charcnt_len;
-
-        // Extracting data fields
-        let tzh_timecnt_data: Vec<i64> = buffer[HEADER_LEN + header.v2_header_start
-            ..HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8]
-            .chunks_exact(8)
-            .map(|tt| BE::read_i64(tt))
-            .collect();
-
-        let tzh_timecnt_indices: &[u8] =
-            &buffer[HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8..tzh_timecnt_end];
-
-        let abbrs = from_utf8(&buffer[tzh_leapcnt_end..tzh_charcnt_end])?;
-
-        let tzh_typecnt: Vec<Ttinfo> = buffer[tzh_timecnt_end..tzh_typecnt_end]
-            .chunks_exact(6)
-            .map(|tti| {
-                let offset = tti[5];
-                let index = abbrs
-                    .chars()
-                    .take(offset as usize)
-                    .filter(|x| *x == '\0')
-                    .count();
-                Ttinfo {
-                    tt_utoff: BE::read_i32(&tti[0..4]) as isize,
-                    tt_isdst: tti[4],
-                    tt_abbrind: index as u8,
-                }
-            })
-            .collect();
-
-        let mut tz_abbr: Vec<String> = abbrs.split("\u{0}").map(|st| st.to_string()).collect();
-        // Removes last empty char
-        if tz_abbr.pop().is_none() {
-            return Err(TzError::EmptyString);
-        };
-
-        // Generating zone name (ie. Europe/Paris) from requested file name
-        let mut timezone = String::new();
-        #[cfg(not(windows))]
-        let mut tz: Vec<&str> = filename.split("/").collect();
-        #[cfg(windows)]
-        let mut tz: Vec<&str> = filename.split("\\").collect();
-        // To prevent crash (case of requested directory separator unmatching OS separator)
-        if tz.len() < 3 {
-            return Err(TzError::InvalidTimezone);
-        }
-        for _ in 0..(tz.len()) - 2 {
-            tz.remove(0);
-        }
-        if tz[0] != "zoneinfo" {
-            timezone.push_str(tz[0]);
-            timezone.push_str("/");
-        }
-        timezone.push_str(tz[1]);
-
-        Ok(Tz {
-            tzh_timecnt_data,
-            tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
-            tzh_typecnt,
-            tz_abbr,
-            name: timezone,
-        })
-    }
-
-    #[cfg(any(feature = "std", feature = "parse", feature = "json"))]
-    fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
-        let mut f = File::open(tz)?;
-        let mut buffer = Vec::new();
-        f.read_to_end(&mut buffer)?;
-        Ok(buffer)
-    }
-
     #[cfg(feature = "std")]
     fn parse_data(buffer: &Vec<u8>, header: Header, filename: &str) -> Result<Tz, TzError> {
         // Calculates fields lengths and indexes (Version 2 format)
@@ -581,12 +497,34 @@ impl Tz {
         }
         timezone.push_str(tz[1]);
 
-        Ok(Tz {
-            tzh_timecnt_data,
-            tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
-            tzh_typecnt,
-            tz_abbr,
-        })
+        #[cfg(any(feature = "parse", feature = "json"))]
+        {
+            return Ok(Tz {
+                tzh_timecnt_data,
+                tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
+                tzh_typecnt,
+                tz_abbr,
+                name: timezone,
+            });
+        }
+
+        #[cfg(not(any(feature = "parse", feature = "json")))]
+        {
+            return Ok(Tz {
+                tzh_timecnt_data,
+                tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
+                tzh_typecnt,
+                tz_abbr,
+            });
+        }
+    }
+
+    #[cfg(any(feature = "std", feature = "parse", feature = "json"))]
+    fn read(tz: &str) -> Result<Vec<u8>, std::io::Error> {
+        let mut f = File::open(tz)?;
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer)?;
+        Ok(buffer)
     }
 
     #[cfg(any(feature = "parse", feature = "json"))]
