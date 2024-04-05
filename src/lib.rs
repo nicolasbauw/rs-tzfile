@@ -1,18 +1,19 @@
 //! This library reads the system timezone information files (TZ Files) provided by IANA.
 //!
+//!```text
+//! [dependencies]
+//! libtzfile = { version = "3.1.0", default-features = false }
+//! ```
+//!
 //! Without any feature enabled, the crate is ```no_std```, and the ```new(buf: Vec<u8>)``` method returns a Tz struct containing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
-//! For error conversion, you can enable the ```std``` feature, and the ```new(tz: &str)``` method now requires the filename and opens this file for you.
+//! The default feature is ```std```, the ```new(tz: &str)``` method then requires the filename and opens this file for you.
 //!
 //! For higher level parsing, you can enable the **parse** or **json** features.
 //!
 //! In this documentation's examples, *tzfile* is the TZfile's path, for instance "/usr/share/zoneinfo/Europe/Paris".
 //!
-//!```text
-//! [dependencies]
-//! libtzfile = { version = "4.0.0", features = ["std"] }
-//! ```
 //!
 //!```text
 //! use libtzfile::Tz;
@@ -66,7 +67,7 @@
 //!
 //! This feature is used in my [world time API](https://crates.io/crates/world-time-api).
 //!
-//! The tests (```cargo test``` or ```cargo test --features json```) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
+//! The tests (```cargo test --no-default-features``` or ```cargo test --features feature```) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 // Support using libtzfile without the standard library
 #![cfg_attr(not(any(feature = "std", feature = "parse", feature = "json")), no_std)]
