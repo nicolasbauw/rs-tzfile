@@ -1,5 +1,9 @@
 # Changelog
 
+### 3.1.0 (2024-04-05)
+
+- [Added] no_std support
+
 ### 3.0.0 (2024-03-27)
 
 - [Changed] Updated some methods from chrono that became deprecated
