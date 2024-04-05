@@ -23,7 +23,7 @@ The default feature is `std`, the `new(tz: &str)` method then requires the filen
 
 ```
 use libtzfile::Tz;
-let tzfile: &str = "/usr/share/zoneinfo/Europe/Paris";
+let tzfile: &str = "/usr/share/zoneinfo/America/Phoenix";
 println!("{:?}", Tz::new(tzfile).unwrap());
 ```
 
