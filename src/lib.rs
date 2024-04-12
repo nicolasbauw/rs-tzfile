@@ -1,6 +1,6 @@
 //! This library reads and parses the system timezone information files (TZ Files) provided by IANA.
 //!
-//! The default feature is ```std```. With ```default-features = false```, the crate is ```no_std``` and ```uses alloc::vec```. In both cases the ```new()``` method returns a Tz struct containing the TZfile
+//! The default feature is ```std```. With ```default-features = false```, the crate is ```no_std``` and uses ```alloc::vec```. In both cases the ```new()``` method returns a Tz struct containing the TZfile
 //! fields as described in the man page (<http://man7.org/linux/man-pages/man5/tzfile.5.html>).
 //!
 //! - with ```no_std``` the function signature is ```new(buf: Vec<u8>)``` where ```buf``` is the TZ File data
