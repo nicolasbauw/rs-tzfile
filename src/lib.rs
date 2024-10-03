@@ -465,7 +465,7 @@ impl Tz {
         let tzh_timecnt_data: Vec<i64> = buffer[HEADER_LEN + header.v2_header_start
             ..HEADER_LEN + header.v2_header_start + header.tzh_timecnt * 8]
             .chunks_exact(8)
-            .map(|tt| BE::read_i64(tt))
+            .map(BE::read_i64)
             .collect();
 
         let tzh_timecnt_indices: &[u8] =
