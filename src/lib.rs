@@ -511,7 +511,7 @@ impl Tz {
         }
         if tz[0] != "zoneinfo" {
             timezone.push_str(tz[0]);
-            timezone.push_str("/");
+            timezone.push('/');
         }
         timezone.push_str(tz[1]);
 
