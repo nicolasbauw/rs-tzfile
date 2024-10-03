@@ -361,7 +361,7 @@ impl Tz {
         Tz::parse_data(&buf, header, tz)
     }
 
-    fn parse_header(buffer: &Vec<u8>) -> Result<Header, TzError> {
+    fn parse_header(buffer: &[u8]) -> Result<Header, TzError> {
         let magic = BE::read_u32(&buffer[0x00..=0x03]);
         if magic != MAGIC {
             return Err(TzError::InvalidMagic);
