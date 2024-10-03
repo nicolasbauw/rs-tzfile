@@ -499,7 +499,7 @@ impl Tz {
         // Generating zone name (ie. Europe/Paris) from requested file name
         let mut timezone = String::new();
         #[cfg(not(windows))]
-        let mut tz: Vec<&str> = filename.split("/").collect();
+        let mut tz: Vec<&str> = filename.split('/').collect();
         #[cfg(windows)]
         let mut tz: Vec<&str> = filename.split("\\").collect();
         // To prevent crash (case of requested directory separator unmatching OS separator)
