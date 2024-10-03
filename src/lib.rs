@@ -450,7 +450,7 @@ impl Tz {
     }
 
     #[cfg(feature = "std")]
-    fn parse_data(buffer: &Vec<u8>, header: Header, filename: &str) -> Result<Tz, TzError> {
+    fn parse_data(buffer: &[u8], header: Header, filename: &str) -> Result<Tz, TzError> {
         // Calculates fields lengths and indexes (Version 2 format)
         let tzh_timecnt_len: usize = header.tzh_timecnt * 9;
         let tzh_typecnt_len: usize = header.tzh_typecnt * 6;
