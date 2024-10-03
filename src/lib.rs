@@ -490,7 +490,7 @@ impl Tz {
             })
             .collect();
 
-        let mut tz_abbr: Vec<String> = abbrs.split("\u{0}").map(|st| st.to_string()).collect();
+        let mut tz_abbr: Vec<String> = abbrs.split('\u{0}').map(|st| st.to_string()).collect();
         // Removes last empty char
         if tz_abbr.pop().is_none() {
             return Err(TzError::EmptyString);
