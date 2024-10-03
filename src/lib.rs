@@ -527,14 +527,12 @@ impl Tz {
         }
 
         #[cfg(not(any(feature = "parse", feature = "json")))]
-        {
-            return Ok(Tz {
-                tzh_timecnt_data,
-                tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
-                tzh_typecnt,
-                tz_abbr,
-            });
-        }
+        Ok(Tz {
+            tzh_timecnt_data,
+            tzh_timecnt_indices: tzh_timecnt_indices.to_vec(),
+            tzh_typecnt,
+            tz_abbr,
+        })
     }
 
     #[cfg(any(feature = "std", feature = "parse", feature = "json"))]
