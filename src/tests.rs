@@ -219,7 +219,7 @@ fn emptytt() {
     #[cfg(target_os = "windows")]
     let timezone = "c:\\Users\\nbauw\\Dev\\zoneinfo\\EST";
     #[cfg(target_family = "unix")]
-    let timezone = "/usr/share/zoneinfo/EST";
+    let timezone = "/usr/share/zoneinfo/UTC";
     assert_eq!(
         Err(crate::TzError::NoData),
         Tz::new(timezone).unwrap().transition_times(None)
