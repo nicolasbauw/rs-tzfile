@@ -79,7 +79,7 @@ fn parse_abbr_amsterdam() {
     let timezone = "c:\\Users\\nbauw\\Dev\\zoneinfo\\Europe\\Amsterdam";
     #[cfg(target_family = "unix")]
     let timezone = "/usr/share/zoneinfo/Europe/Amsterdam";
-    let abbr: Vec<String> = vec!["LMT", "NST", "AMT", "+0020", "+0120", "CET", "CEST"]
+    let abbr: Vec<String> = vec!["LMT", "BMT", "WET", "CET", "CEST", "WEST"]
         .iter()
         .map(|x| x.to_string())
         .collect();
