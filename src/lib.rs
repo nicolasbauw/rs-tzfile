@@ -74,7 +74,7 @@
 //!
 //! This feature is used in my [world time API](https://crates.io/crates/world-time-api).
 //!
-//! The tests (`cargo test`, ```cargo test --no-default-features``` or ```cargo test --features parse|json```) are working with the [2024a timezone database](https://data.iana.org/time-zones/tz-link.html).
+//! The tests (`cargo test`, ```cargo test --no-default-features``` or ```cargo test --features parse|json```) are working with the [2024b timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 // Support using libtzfile without the standard library
 #![cfg_attr(not(any(feature = "std", feature = "parse", feature = "json")), no_std)]
