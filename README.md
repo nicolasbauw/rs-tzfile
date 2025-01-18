@@ -82,6 +82,6 @@ println!("{}", tz);
 
 This feature is used in my [world time API](https://crates.io/crates/world-time-api).
 
-The tests (`cargo test`, `cargo test --no-default-features` or `cargo test --features parse|json`) are working with the [2024b timezone database](https://data.iana.org/time-zones/tz-link.html).
+The tests (`cargo test`, `cargo test --no-default-features` or `cargo test --features parse|json`) are working with the [2025a timezone database](https://data.iana.org/time-zones/tz-link.html).
 
 License: MIT
